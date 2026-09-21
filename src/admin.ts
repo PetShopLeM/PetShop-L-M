@@ -62,10 +62,13 @@ const botaoSalvarOferta = formNovaOferta.querySelector<HTMLButtonElement>(".bota
 // TIPOS
 // ==========================================
 interface Agendamento {
-  id?: number;
+  linha: number;
+  data: string;
   dono: string;
+  endereco: string;
+  cell: string;
+  servico: string;
   horario: string;
-  horarioISO?: string;
   valor: string;
 }
 
@@ -82,7 +85,7 @@ interface ItemEstoque {
 }
 
 interface Oferta {
-  id: number;
+  linha: number;
   nome: string;
   descricao: string;
   imagem: string;
@@ -94,9 +97,329 @@ interface Oferta {
 }
 
 let abaAtual: "agenda" | "estoque" | "ofertas" = "agenda";
-let editandoIndex: number | null = null;
+let editandoLinha: number | null = null;
 let editandoOfertaIndex: number | null = null;
 let produtosEstoqueCache: ItemEstoque[] = [];
+let agendamentosCache: Agendamento[] = [];
+let ofertasCache: Oferta[] = [];
+
+// ==========================================
+// OFERTAS (GOOGLE SHEETS)
+// ==========================================
+const campoImagemOferta =
+  (formNovaOferta.elements.namedItem("imagem") as HTMLInputElement | null) ||
+  formNovaOferta.querySelector<HTMLInputElement>("input[name='imagem']")!;
+
+const previewImagemOferta =
+  document.querySelector<HTMLImageElement>("#previewProdutoOferta");
+
+function campoOferta(nome: string): HTMLInputElement | null {
+  return (
+    (formNovaOferta.elements.namedItem(nome) as HTMLInputElement | null) ||
+    formNovaOferta.querySelector<HTMLInputElement>(`[name="${nome}"]`)
+  );
+}
+
+function valorDoCampo(nome: string): string {
+  return campoOferta(nome)?.value.trim() ?? "";
+}
+
+function formatarDataOferta(valor: string | number): string {
+  const texto = String(valor ?? "").trim();
+  if (!texto) return "";
+
+  // Numero de serie do Google Sheets
+  if (/^\d+(\.\d+)?$/.test(texto)) {
+    const ms = Math.round((Number(texto) - 25569) * 86400 * 1000);
+    const data = new Date(ms);
+    const dia = String(data.getUTCDate()).padStart(2, "0");
+    const mes = String(data.getUTCMonth() + 1).padStart(2, "0");
+    return `${dia}/${mes}/${data.getUTCFullYear()}`;
+  }
+
+  // ISO (yyyy-mm-dd)
+  const partesISO = texto.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (partesISO) {
+    return `${partesISO[3]}/${partesISO[2]}/${partesISO[1]}`;
+  }
+
+  return texto;
+}
+
+function converterParaISO(valor: string | number): string {
+  const texto = String(valor ?? "").trim();
+  if (!texto) return "";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(texto)) return texto;
+
+  if (/^\d+(\.\d+)?$/.test(texto)) {
+    const ms = Math.round((Number(texto) - 25569) * 86400 * 1000);
+    const data = new Date(ms);
+    const mes = String(data.getUTCMonth() + 1).padStart(2, "0");
+    const dia = String(data.getUTCDate()).padStart(2, "0");
+    return `${data.getUTCFullYear()}-${mes}-${dia}`;
+  }
+
+  const partes = texto.split("/");
+  if (partes.length === 3) {
+    const [dia, mes, ano] = partes;
+    return `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+  }
+
+  return "";
+}
+
+function formatarMoedaOferta(valor: string | number): string {
+  const texto = String(valor ?? "").trim();
+  if (!texto) return "";
+  const numero = Number(
+    texto.replace("R$", "").replace(/\s/g, "").replace(",", ".")
+  );
+  if (!isFinite(numero)) return texto;
+  return `R$ ${numero.toFixed(2).replace(".", ",")}`;
+}
+
+function formatarDescontoOferta(valor: string | number): string {
+  const texto = String(valor ?? "").trim();
+  if (!texto) return "";
+  if (texto.includes("%")) return texto;
+  const numero = Number(texto.replace(",", ".").replace(/[^\d.]/g, ""));
+  if (isFinite(numero) && texto !== "") return `${numero}%`;
+  return texto;
+}
+
+function renderizarOfertas(): void {
+  listaOfertas.innerHTML = "";
+
+  if (ofertasCache.length === 0) {
+    ofertasVazia.style.display = "block";
+    return;
+  }
+  ofertasVazia.style.display = "none";
+
+  ofertasCache.forEach((oferta) => {
+    const tr = document.createElement("tr");
+
+    const tdNome = document.createElement("td");
+    tdNome.textContent = oferta.nome;
+    tr.appendChild(tdNome);
+
+    const tdPrecoAntigo = document.createElement("td");
+    tdPrecoAntigo.textContent = formatarMoedaOferta(oferta.precoAntigo);
+    tr.appendChild(tdPrecoAntigo);
+
+    const tdPrecoPromocional = document.createElement("td");
+    tdPrecoPromocional.textContent = formatarMoedaOferta(oferta.precoPromocional);
+    tr.appendChild(tdPrecoPromocional);
+
+    const tdDesconto = document.createElement("td");
+    tdDesconto.textContent = formatarDescontoOferta(oferta.desconto);
+    tr.appendChild(tdDesconto);
+
+    const tdInicio = document.createElement("td");
+    tdInicio.textContent = formatarDataOferta(oferta.inicio);
+    tr.appendChild(tdInicio);
+
+    const tdFim = document.createElement("td");
+    tdFim.textContent = formatarDataOferta(oferta.fim);
+    tr.appendChild(tdFim);
+
+    const tdAcoes = document.createElement("td");
+    tdAcoes.className = "coluna-acoes";
+
+    const botaoEditar = document.createElement("button");
+botaoEditar.type = "button";
+botaoEditar.className = "botao-editar";
+botaoEditar.textContent = "Editar";
+botaoEditar.dataset.linha = String(oferta.linha);
+
+const botaoApagar = document.createElement("button");
+botaoApagar.type = "button";
+botaoApagar.className = "botao-apagar";
+botaoApagar.textContent = "Apagar";
+botaoApagar.dataset.linha = String(oferta.linha);
+
+    tdAcoes.appendChild(botaoEditar);
+    tdAcoes.appendChild(botaoApagar);
+    tr.appendChild(tdAcoes);
+
+    listaOfertas.appendChild(tr);
+  });
+}
+
+async function carregarOfertas(): Promise<void> {
+  try {
+    listaOfertas.innerHTML =
+      '<tr><td colspan="7">Carregando ofertas...</td></tr>';
+    ofertasVazia.style.display = "none";
+
+    const resposta = await fetch("/api/ofertas");
+    const dados = await resposta.json().catch(() => ({}));
+
+    if (!resposta.ok) {
+      throw new Error(dados?.erro || "Erro ao carregar ofertas da planilha.");
+    }
+
+    ofertasCache = (dados.ofertas || []) as Oferta[];
+  } catch (erro) {
+    console.error(erro);
+    ofertasCache = [];
+  }
+
+  renderizarOfertas();
+}
+
+function preencherFormularioOferta(oferta: Oferta): void {
+  const definir = (nome: string, valor: string) => {
+    const campo = campoOferta(nome);
+    if (campo) campo.value = valor;
+  };
+
+  definir("nome", oferta.nome);
+  definir("precoAntigo", oferta.precoAntigo);
+  definir("precoPromocional", oferta.precoPromocional);
+  definir("desconto", oferta.desconto);
+  definir("inicio", converterParaISO(oferta.inicio));
+  definir("fim", converterParaISO(oferta.fim));
+  definir("descricao", oferta.descricao);
+  definir("imagem", oferta.imagem);
+}
+
+function abrirModalOferta(): void {
+  editandoOfertaIndex = null;
+  formNovaOferta.reset();
+
+  mostrarPreviewProduto("", "");
+
+  const titulo = modalNovaOferta.querySelector("h3");
+  if (titulo) titulo.textContent = "Nova Oferta";
+  botaoSalvarOferta.textContent = "Salvar";
+}
+
+// Fechar pelo X
+fecharModalOferta.addEventListener("click", () => {
+  modalNovaOferta.classList.remove("aberto");
+  editandoOfertaIndex = null;
+  const titulo = modalNovaOferta.querySelector("h3");
+  if (titulo) titulo.textContent = "Nova Oferta";
+  botaoSalvarOferta.textContent = "Salvar";
+});
+
+// Salvar (POST novo / PATCH edicao)
+formNovaOferta.addEventListener("submit", async (evento) => {
+  evento.preventDefault();
+
+  const nome = valorDoCampo("nome");
+  if (!nome) return;
+
+  const precoAntigo = valorDoCampo("precoAntigo");
+  const precoPromocional = valorDoCampo("precoPromocional");
+  let desconto = valorDoCampo("desconto");
+
+  // Se o campo desconto ficou vazio, calcula a partir dos precos
+  if (!desconto) {
+    const antigo = Number(precoAntigo.replace(",", ".").replace(/[^\d.]/g, ""));
+    const promo = Number(
+      precoPromocional.replace(",", ".").replace(/[^\d.]/g, "")
+    );
+    if (isFinite(antigo) && isFinite(promo) && antigo > 0 && promo < antigo) {
+      desconto = `${Math.round((1 - promo / antigo) * 100)}%`;
+    }
+  }
+
+  const payload = {
+    nome,
+    precoAntigo,
+    precoPromocional,
+    desconto,
+    inicio: formatarDataOferta(valorDoCampo("inicio")),
+    fim: formatarDataOferta(valorDoCampo("fim")),
+    descricao: valorDoCampo("descricao"),
+    imagem: valorDoCampo("imagem"),
+  };
+
+  botaoSalvarOferta.disabled = true;
+
+  try {
+    if (editandoOfertaIndex === null) {
+      const resposta = await fetch("/api/ofertas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const dados = await resposta.json().catch(() => ({}));
+      if (!resposta.ok) {
+        throw new Error(dados?.erro || "Erro ao salvar oferta.");
+      }
+    } else {
+      const resposta = await fetch(`/api/ofertas?linha=${editandoOfertaIndex}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const dados = await resposta.json().catch(() => ({}));
+      if (!resposta.ok) {
+        throw new Error(dados?.erro || "Erro ao editar oferta.");
+      }
+    }
+
+    modalNovaOferta.classList.remove("aberto");
+    await carregarOfertas();
+  } catch (erro) {
+    alert(erro instanceof Error ? erro.message : "Erro ao salvar oferta.");
+  } finally {
+    botaoSalvarOferta.disabled = false;
+    botaoSalvarOferta.textContent = "Salvar";
+  }
+});
+
+// Acoes da tabela (Editar / Apagar)
+listaOfertas.addEventListener("click", async (evento) => {
+  const alvo = evento.target as HTMLElement;
+  const botao = alvo.closest<HTMLButtonElement>("button");
+  if (!botao) return;
+
+  const linha = Number(botao.dataset.linha);
+  if (!linha) return;
+
+  if (botao.textContent === "Editar") {
+    const oferta = ofertasCache.find((o) => o.linha === linha);
+    if (!oferta) return;
+
+    editandoOfertaIndex = linha;
+    preencherFormularioOferta(oferta);
+    mostrarPreviewProduto(oferta.imagem, oferta.nome);
+
+    const titulo = modalNovaOferta.querySelector("h3");
+    if (titulo) titulo.textContent = "Editar Oferta";
+    botaoSalvarOferta.textContent = "Atualizar";
+
+    modalNovaOferta.classList.add("aberto");
+  }
+
+  if (botao.textContent === "Apagar") {
+    if (!confirm("Apagar esta oferta?")) return;
+
+    try {
+      const resposta = await fetch(`/api/ofertas?linha=${linha}`, {
+        method: "DELETE",
+      });
+      const dados = await resposta.json().catch(() => ({}));
+      if (!resposta.ok) {
+        throw new Error(dados?.erro || "Erro ao apagar oferta.");
+      }
+      await carregarOfertas();
+    } catch (erro) {
+      alert(erro instanceof Error ? erro.message : "Erro ao apagar oferta.");
+    }
+  }
+});
+
+// Atualiza a previa da foto ao mudar o campo imagem
+campoImagemOferta.addEventListener("change", () => {
+  if (previewImagemOferta) {
+    previewImagemOferta.src = campoImagemOferta.value;
+  }
+});
 
 // ==========================================
 // FORMATAÇÃO E UTILITÁRIOS
@@ -132,82 +455,73 @@ function escaparTexto(texto: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function formatarData(data: string): string {
-  if (!data) return "";
-  const dataFormatada = new Date(`${data}T00:00:00`);
-  if (isNaN(dataFormatada.getTime())) return data;
-  return dataFormatada.toLocaleDateString("pt-BR");
-}
-
 campoValor.addEventListener("input", () => {
   campoValor.value = limparValor(campoValor.value);
 });
 
 // ==========================================
-// AGENDAMENTOS
+// AGENDAMENTOS (GOOGLE SHEETS VIA API)
 // ==========================================
-function buscarAgendamentos(): Agendamento[] {
+function converterDataParaInput(valor: string): string {
+  const valorLimpo = (valor || "").trim();
+  const partes = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(valorLimpo);
+  if (partes) {
+    return `${partes[3]}-${partes[2].padStart(2, "0")}-${partes[1].padStart(2, "0")}`;
+  }
+  return valorLimpo;
+}
+
+function normalizarDataPlanilha(valor: string): string {
+  const valorLimpo = (valor || "").trim();
+  const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(valorLimpo);
+  if (partes) {
+    return `${partes[3]}/${partes[2]}/${partes[1]}`;
+  }
+  return valorLimpo;
+}
+
+async function carregarAgendamentos(): Promise<void> {
   try {
-    return JSON.parse(localStorage.getItem("agendamentos") || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function salvarAgendamentos(agendamentos: Agendamento[]): void {
-  localStorage.setItem("agendamentos", JSON.stringify(agendamentos));
-}
-
-function migrarAgendamentosAntigos(): void {
-  const agendamentos = buscarAgendamentos();
-  let mudou = false;
-
-  for (const agendamento of agendamentos as (Agendamento & { nome?: string })[]) {
-    if (!agendamento.dono && agendamento.nome) {
-      agendamento.dono = agendamento.nome;
-      delete agendamento.nome;
-      mudou = true;
+    const resposta = await fetch("/api/agendamentos");
+    if (!resposta.ok) {
+      const erroDados = await resposta.json().catch(() => ({}));
+      throw new Error(
+        erroDados.erro || erroDados.error || "Falha ao carregar agendamentos."
+      );
     }
-  }
 
-  if (mudou) {
-    salvarAgendamentos(agendamentos);
+    const agendamentos: Agendamento[] = await resposta.json();
+    agendamentosCache = agendamentos;
+    renderizarAgenda();
+  } catch (erro: any) {
+    agendamentosCache = [];
+    renderizarAgenda();
+    console.error("Erro ao carregar agendamentos:", erro.message);
   }
 }
 
 function renderizarAgenda(): void {
-  const agendamentos = buscarAgendamentos();
   listaAgendamentos.innerHTML = "";
-  agendaVazia.style.display = agendamentos.length === 0 ? "block" : "none";
+  agendaVazia.style.display =
+    agendamentosCache.length === 0 ? "block" : "none";
 
-  agendamentos.forEach((agendamento, index) => {
+  agendamentosCache.forEach((agendamento) => {
     const linha = document.createElement("tr");
     linha.innerHTML = `
+      <td>${escaparTexto(agendamento.data)}</td>
       <td>${escaparTexto(agendamento.dono)}</td>
+      <td>${escaparTexto(agendamento.endereco)}</td>
+      <td>${escaparTexto(agendamento.cell)}</td>
+      <td>${escaparTexto(agendamento.servico)}</td>
       <td>${escaparTexto(agendamento.horario)}</td>
-      <td>${formatarDinheiro(agendamento.valor)}</td>
+      <td>${agendamento.valor.trim() ? formatarDinheiro(agendamento.valor) : ""}</td>
       <td class="coluna-acoes">
-        <button class="botao-editar" data-index="${index}" type="button">Editar</button>
-        <button class="botao-apagar" data-index="${index}" type="button">Apagar</button>
+        <button class="botao-editar" data-linha="${agendamento.linha}" type="button">Editar</button>
+        <button class="botao-apagar" data-linha="${agendamento.linha}" type="button">Apagar</button>
       </td>
     `;
     listaAgendamentos.appendChild(linha);
   });
-}
-
-// ==========================================
-// OFERTAS
-// ==========================================
-function buscarOfertas(): Oferta[] {
-  try {
-    return JSON.parse(localStorage.getItem("ofertas") || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function salvarOfertas(ofertas: Oferta[]): void {
-  localStorage.setItem("ofertas", JSON.stringify(ofertas));
 }
 
 // ==========================================
@@ -354,29 +668,6 @@ document.addEventListener("click", (evento) => {
     fecharSugestoesOferta();
   }
 });
-
-function renderizarOfertas(): void {
-  const ofertas = buscarOfertas();
-  listaOfertas.innerHTML = "";
-  ofertasVazia.style.display = ofertas.length === 0 ? "block" : "none";
-
-  ofertas.forEach((oferta, index) => {
-    const linha = document.createElement("tr");
-    linha.innerHTML = `
-      <td>${escaparTexto(oferta.nome)}</td>
-      <td>${formatarDinheiro(oferta.precoAntigo)}</td>
-      <td>${formatarDinheiro(oferta.precoPromocional)}</td>
-      <td>${escaparTexto(oferta.desconto)}%</td>
-      <td>${formatarData(oferta.inicio)}</td>
-      <td>${formatarData(oferta.fim)}</td>
-      <td class="coluna-acoes">
-        <button class="botao-editar" data-index="${index}" type="button">Editar</button>
-        <button class="botao-apagar" data-index="${index}" type="button">Apagar</button>
-      </td>
-    `;
-    listaOfertas.appendChild(linha);
-  });
-}
 
 // ==========================================
 // ESTOQUE (GOOGLE SHEETS VIA API)
@@ -566,7 +857,7 @@ function alternarAba(aba: "agenda" | "estoque" | "ofertas"): void {
     secaoAgenda.classList.add("visivel");
     botaoAdicionar.style.display = "inline-flex";
     botaoAdicionar.setAttribute("aria-label", "Adicionar agendamento");
-    renderizarAgenda();
+    void carregarAgendamentos();
   }
 
   if (aba === "estoque") {
@@ -583,7 +874,7 @@ function alternarAba(aba: "agenda" | "estoque" | "ofertas"): void {
     botaoAdicionar.style.display = "inline-flex";
     botaoAdicionar.setAttribute("aria-label", "Adicionar oferta");
     void carregarEstoque();
-    renderizarOfertas();
+    void carregarOfertas();
   }
 }
 
@@ -594,7 +885,7 @@ botaoOfertas.addEventListener("click", () => alternarAba("ofertas"));
 // Botão geral "+"
 botaoAdicionar.addEventListener("click", () => {
   if (abaAtual === "agenda") {
-    editandoIndex = null;
+    editandoLinha = null;
     formNovoAgendamento.reset();
     const titulo = modalNovo.querySelector("h3");
     if (titulo) titulo.textContent = "Novo Agendamento";
@@ -609,12 +900,7 @@ botaoAdicionar.addEventListener("click", () => {
   }
 
   if (abaAtual === "ofertas") {
-    editandoOfertaIndex = null;
-    formNovaOferta.reset();
-    mostrarPreviewProduto("", "");
-    const titulo = modalNovaOferta.querySelector("h3");
-    if (titulo) titulo.textContent = "Nova Oferta";
-    botaoSalvarOferta.textContent = "Salvar";
+    abrirModalOferta();
     void carregarEstoque();
     const campoInicio = document.querySelector<HTMLInputElement>("#ofertaInicio")!;
     campoInicio.value = dataHojeISO();
@@ -624,160 +910,122 @@ botaoAdicionar.addEventListener("click", () => {
 
 fecharModalNovo.addEventListener("click", () => {
   modalNovo.classList.remove("aberto");
-  editandoIndex = null;
+  editandoLinha = null;
 });
 
-// Submissão do agendamento
-formNovoAgendamento.addEventListener("submit", (evento) => {
+// Submissão do agendamento (Criação e Edição na planilha)
+formNovoAgendamento.addEventListener("submit", async (evento) => {
   evento.preventDefault();
   const dados = new FormData(formNovoAgendamento);
-  const agendamentos = buscarAgendamentos();
 
-  const dono = String(dados.get("dono") || "");
-  const horarioBruto = String(dados.get("horario") || "");
-  const valorNumerico = obterValorNumerico(String(dados.get("valor") || ""));
+  let data = String(dados.get("data") || "");
+  let horario = String(dados.get("horario") || "");
 
-  const agendamentoSalvo: Agendamento = {
-    id: Date.now(),
-    dono,
-    horario: horarioBruto ? new Date(horarioBruto).toLocaleString("pt-BR") : "",
-    horarioISO: horarioBruto,
-    valor: valorNumerico.toFixed(2),
-  };
-
-  if (editandoIndex !== null) {
-    const agendamentoAnterior = agendamentos[editandoIndex];
-    agendamentoSalvo.id = agendamentoAnterior.id;
-    agendamentos[editandoIndex] = agendamentoSalvo;
-  } else {
-    agendamentos.push(agendamentoSalvo);
+  // Se o campo de horário for datetime-local, separa data e hora
+  if (horario.includes("T")) {
+    const [parteData, parteHora] = horario.split("T");
+    if (!data) data = parteData;
+    horario = parteHora;
   }
 
-  salvarAgendamentos(agendamentos);
-  editandoIndex = null;
-  formNovoAgendamento.reset();
-  modalNovo.classList.remove("aberto");
-  renderizarAgenda();
+  const valorNumerico = obterValorNumerico(String(dados.get("valor") || ""));
+
+  const corpo = {
+    linha: editandoLinha ?? undefined,
+    data: normalizarDataPlanilha(data),
+    dono: String(dados.get("dono") || ""),
+    endereco: String(dados.get("endereco") || ""),
+    cell: String(dados.get("cell") || ""),
+    servico: String(dados.get("servico") || ""),
+    horario: horario.trim(),
+    valor: formatarDinheiro(valorNumerico),
+  };
+
+  try {
+    const resposta = await fetch("/api/agendamentos", {
+      method: editandoLinha ? "PATCH" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(corpo),
+    });
+
+    if (!resposta.ok) {
+      const erroDados = await resposta.json().catch(() => ({}));
+      throw new Error(
+        erroDados.erro || "Erro ao salvar agendamento na planilha."
+      );
+    }
+
+    editandoLinha = null;
+    formNovoAgendamento.reset();
+    modalNovo.classList.remove("aberto");
+    await carregarAgendamentos();
+  } catch (erro: any) {
+    alert("Falha ao salvar agendamento: " + erro.message);
+  }
 });
 
 // Ações da lista de agendamentos
-listaAgendamentos.addEventListener("click", (evento) => {
+listaAgendamentos.addEventListener("click", async (evento) => {
   const alvo = evento.target as HTMLElement;
-  const index = Number(alvo.dataset.index);
-  if (Number.isNaN(index)) return;
+  const linhaStr = alvo.dataset.linha;
+  if (!linhaStr) return;
+  const linha = Number(linhaStr);
 
   if (alvo.classList.contains("botao-apagar")) {
-    if (confirm("Deseja realmente apagar este agendamento?")) {
-      const agendamentos = buscarAgendamentos();
-      agendamentos.splice(index, 1);
-      salvarAgendamentos(agendamentos);
-      renderizarAgenda();
+    if (confirm("Deseja realmente apagar este agendamento da planilha?")) {
+      alvo.textContent = "...";
+      try {
+        const resposta = await fetch(`/api/agendamentos?linha=${linha}`, {
+          method: "DELETE",
+        });
+        if (!resposta.ok) throw new Error("Erro ao apagar");
+        await carregarAgendamentos();
+      } catch (erro: any) {
+        alert("Não foi possível excluir o agendamento: " + erro.message);
+        alvo.textContent = "Apagar";
+      }
     }
   }
 
   if (alvo.classList.contains("botao-editar")) {
-    const agendamentos = buscarAgendamentos();
-    const agendamento = agendamentos[index];
+    const agendamento = agendamentosCache.find((a) => a.linha === linha);
     if (!agendamento) return;
 
-    editandoIndex = index;
-    (formNovoAgendamento.elements.namedItem("dono") as HTMLInputElement).value = agendamento.dono;
+    editandoLinha = agendamento.linha;
+
+    const campoData = formNovoAgendamento.elements.namedItem(
+      "data"
+    ) as HTMLInputElement | null;
+    if (campoData) campoData.value = converterDataParaInput(agendamento.data);
+
+    (formNovoAgendamento.elements.namedItem("dono") as HTMLInputElement).value =
+      agendamento.dono;
+
+    const campoEndereco = formNovoAgendamento.elements.namedItem(
+      "endereco"
+    ) as HTMLInputElement | null;
+    if (campoEndereco) campoEndereco.value = agendamento.endereco;
+
+    const campoCell = formNovoAgendamento.elements.namedItem(
+      "cell"
+    ) as HTMLInputElement | null;
+    if (campoCell) campoCell.value = agendamento.cell;
+
+    const campoServico = formNovoAgendamento.elements.namedItem(
+      "servico"
+    ) as HTMLInputElement | null;
+    if (campoServico) campoServico.value = agendamento.servico;
+
+    const campoHorario = formNovoAgendamento.elements.namedItem(
+      "horario"
+    ) as HTMLInputElement | null;
+    if (campoHorario) campoHorario.value = agendamento.horario;
+
     campoValor.value = limparValor(agendamento.valor);
-    if (agendamento.horarioISO) {
-      (formNovoAgendamento.elements.namedItem("horario") as HTMLInputElement).value = agendamento.horarioISO;
-    }
 
     const titulo = modalNovo.querySelector("h3");
     if (titulo) titulo.textContent = "Editar Agendamento";
     modalNovo.classList.add("aberto");
-  }
-});
-
-// Submissão da oferta (Criação e Edição)
-formNovaOferta.addEventListener("submit", (evento) => {
-  evento.preventDefault();
-  const dados = new FormData(formNovaOferta);
-
-  const novaOferta: Oferta = {
-    id: Date.now(),
-    nome: String(dados.get("nome") || ""),
-    descricao: String(dados.get("descricao") || ""),
-    imagem: String(dados.get("imagem") || ""),
-    precoAntigo: String(dados.get("precoAntigo") || ""),
-    precoPromocional: String(dados.get("precoPromocional") || ""),
-    desconto: String(dados.get("desconto") || ""),
-    inicio: String(dados.get("inicio") || ""),
-    fim: String(dados.get("fim") || ""),
-  };
-
-  const ofertas = buscarOfertas();
-
-  if (editandoOfertaIndex !== null) {
-    const ofertaAnterior = ofertas[editandoOfertaIndex];
-    if (ofertaAnterior) {
-      novaOferta.id = ofertaAnterior.id;
-      ofertas[editandoOfertaIndex] = novaOferta;
-    } else {
-      ofertas.push(novaOferta);
-    }
-  } else {
-    ofertas.push(novaOferta);
-  }
-
-  salvarOfertas(ofertas);
-  editandoOfertaIndex = null;
-
-  formNovaOferta.reset();
-  mostrarPreviewProduto("", "");
-  modalNovaOferta.classList.remove("aberto");
-  renderizarOfertas();
-});
-
-fecharModalOferta.addEventListener("click", () => {
-  modalNovaOferta.classList.remove("aberto");
-  editandoOfertaIndex = null;
-  const titulo = modalNovaOferta.querySelector("h3");
-  if (titulo) titulo.textContent = "Nova Oferta";
-  botaoSalvarOferta.textContent = "Salvar";
-});
-
-// Ações da lista de ofertas
-listaOfertas.addEventListener("click", (evento) => {
-  const alvo = evento.target as HTMLElement;
-  const index = Number(alvo.dataset.index);
-  if (Number.isNaN(index)) return;
-
-  if (alvo.classList.contains("botao-apagar")) {
-    if (confirm("Deseja realmente apagar esta oferta?")) {
-      const ofertas = buscarOfertas();
-      ofertas.splice(index, 1);
-      salvarOfertas(ofertas);
-      renderizarOfertas();
-    }
-  }
-
-  if (alvo.classList.contains("botao-editar")) {
-    const ofertas = buscarOfertas();
-    const oferta = ofertas[index];
-    if (!oferta) return;
-
-    editandoOfertaIndex = index;
-
-    (formNovaOferta.elements.namedItem("nome") as HTMLInputElement).value = oferta.nome;
-    (formNovaOferta.elements.namedItem("descricao") as HTMLInputElement).value = oferta.descricao;
-    (formNovaOferta.elements.namedItem("imagem") as HTMLInputElement).value = oferta.imagem;
-    (formNovaOferta.elements.namedItem("precoAntigo") as HTMLInputElement).value = oferta.precoAntigo;
-    (formNovaOferta.elements.namedItem("precoPromocional") as HTMLInputElement).value = oferta.precoPromocional;
-    (formNovaOferta.elements.namedItem("desconto") as HTMLInputElement).value = oferta.desconto;
-    (formNovaOferta.elements.namedItem("inicio") as HTMLInputElement).value = oferta.inicio;
-    (formNovaOferta.elements.namedItem("fim") as HTMLInputElement).value = oferta.fim;
-
-    mostrarPreviewProduto(oferta.imagem, oferta.nome);
-
-    const titulo = modalNovaOferta.querySelector("h3");
-    if (titulo) titulo.textContent = "Editar Oferta";
-    botaoSalvarOferta.textContent = "Atualizar";
-    modalNovaOferta.classList.add("aberto");
   }
 });
 
@@ -794,10 +1042,8 @@ if (!usuarioLogado || !EMAILS_AUTORIZADOS.includes(usuarioLogado)) {
   window.location.href = "login.html";
 } else {
   usuarioLogadoSpan.textContent = usuarioLogado;
-  migrarAgendamentosAntigos();
   alternarAba("agenda");
-  renderizarAgenda();
-  renderizarOfertas();
+  void carregarOfertas();
 }
 
 // ==========================================
@@ -836,20 +1082,13 @@ if (!usuarioLogado || !EMAILS_AUTORIZADOS.includes(usuarioLogado)) {
   function buscarImagem(nomeNaTabela: string): string {
     const nomeLimpo = nomeNaTabela.trim().toLowerCase();
 
-    // 1. Tenta pela oferta salva (campo imagem)
-    try {
-      const salvas: Array<{ nome: string; imagem?: string }> = JSON.parse(
-        localStorage.getItem("ofertas") || "[]"
-      );
-      const salva = salvas.find(
-        (o) => (o.nome || "").trim().toLowerCase() === nomeLimpo && o.imagem
-      );
-      if (salva && salva.imagem) return salva.imagem;
-    } catch (erro) {
-      // se der erro ao ler o localStorage, segue para o estoque
-    }
+    // 1. Tenta pela oferta salva na planilha (campo imagem)
+    const salva = ofertasCache.find(
+      (o) => (o.nome || "").trim().toLowerCase() === nomeLimpo && o.imagem
+    );
+    if (salva && salva.imagem) return salva.imagem;
 
-    // 2. Tenta pelo produto do estoque (pelo nome)
+    // 2. Fallback: imagem do produto no estoque
     const produto = produtosEstoqueCache.find(
       (item) => item.produto.trim().toLowerCase() === nomeLimpo
     );

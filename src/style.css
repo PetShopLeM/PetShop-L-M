@@ -534,11 +534,13 @@ button:hover {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: 2000;
   display: none;
   align-items: center;
   justify-content: center;
+  padding: 20px 12px;
   background-color: rgba(0, 0, 0, 0.5);
+  overflow-y: auto;
 }
 
 .modal-overlay.aberto {
@@ -549,11 +551,14 @@ button:hover {
   position: relative;
   width: 90%;
   max-width: 420px;
-  margin: 0 auto;
+  margin: auto;
   padding: 35px 30px;
   border-radius: 12px;
   background-color: #ffffff;
   text-align: center;
+  max-height: 90vh;
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
 }
 
 .modal h3 {
@@ -793,54 +798,44 @@ button:hover {
    TABELA DA AGENDA (mesmo layout do estoque)
    ========================================= */
 
-.pagina-admin .secao-agenda .tabela-container {
-  width: 100%;
-  max-width: 1050px;
-  margin: 0 auto;
-  padding-bottom: 10px;
-  overflow-x: hidden;
-}
-
-.pagina-admin .tabela-agenda {
-  width: 100%;
-  min-width: 0;
-  margin: 0 auto;
-  border-collapse: collapse;
-  table-layout: fixed;
-  color: #e68d25;
-  background-color: #ffffff;
-}
-
-.pagina-admin .tabela-agenda th,
-.pagina-admin .tabela-agenda td {
-  padding: 8px 4px;
-  border-bottom: 1px solid #eadde5;
-  text-align: center;
-  vertical-align: middle;
-  font-size: 12px;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  white-space: normal;
-}
-
 .pagina-admin .tabela-agenda th:nth-child(1),
 .pagina-admin .tabela-agenda td:nth-child(1) {
-  width: 24%;
+  width: 11%;
 }
 
 .pagina-admin .tabela-agenda th:nth-child(2),
 .pagina-admin .tabela-agenda td:nth-child(2) {
-  width: 30%;
+  width: 14%;
 }
 
 .pagina-admin .tabela-agenda th:nth-child(3),
 .pagina-admin .tabela-agenda td:nth-child(3) {
-  width: 18%;
+  width: 17%;
 }
 
 .pagina-admin .tabela-agenda th:nth-child(4),
 .pagina-admin .tabela-agenda td:nth-child(4) {
-  width: 28%;
+  width: 13%;
+}
+
+.pagina-admin .tabela-agenda th:nth-child(5),
+.pagina-admin .tabela-agenda td:nth-child(5) {
+  width: 14%;
+}
+
+.pagina-admin .tabela-agenda th:nth-child(6),
+.pagina-admin .tabela-agenda td:nth-child(6) {
+  width: 10%;
+}
+
+.pagina-admin .tabela-agenda th:nth-child(7),
+.pagina-admin .tabela-agenda td:nth-child(7) {
+  width: 10%;
+}
+
+.pagina-admin .tabela-agenda th:nth-child(8),
+.pagina-admin .tabela-agenda td:nth-child(8) {
+  width: 11%;
 }
 
 /* Botões Editar e Apagar da agenda */
@@ -1633,5 +1628,235 @@ button:hover {
     width: 34px;
     height: 34px;
     max-width: 34px;
+  }
+}
+
+/* =========================================
+   AJUSTES PARA CELULAR (TABELAS DO PAINEL)
+   No celular cada linha da tabela vira um
+   CARTÃO com todas as informações visíveis
+   de uma vez — sem rolagem lateral.
+   Só vale em telas de até 768px.
+   ========================================= */
+@media (max-width: 768px) {
+
+  /* Espaço no rodapé para o botão + não cobrir o último cartão */
+  .conteudo-principal {
+    padding-bottom: 110px;
+  }
+
+  .pagina-admin .secao-agenda .tabela-container,
+  .pagina-admin .secao-estoque .tabela-container,
+  .pagina-admin .secao-ofertas .tabela-container {
+    overflow: visible;
+  }
+
+  /* A tabela vira uma pilha de cartões, centralizada */
+  .pagina-admin .tabela-agenda,
+  .pagina-admin .tabela-estoque,
+  .pagina-admin .tabela-ofertas {
+    display: block;
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+  }
+
+  .pagina-admin .tabela-agenda tbody,
+  .pagina-admin .tabela-estoque tbody,
+  .pagina-admin .tabela-ofertas tbody {
+    display: block;
+    width: 100%;
+  }
+
+  /* Esconde a linha de títulos (Data, Dono(a)...),
+     pois cada campo agora tem etiqueta dentro do cartão */
+  .pagina-admin .tabela-agenda thead,
+  .pagina-admin .tabela-estoque thead,
+  .pagina-admin .tabela-ofertas thead {
+    display: none;
+  }
+
+  /* Cada agendamento / produto / oferta vira um cartão */
+  .pagina-admin .tabela-agenda tr,
+  .pagina-admin .tabela-estoque tr,
+  .pagina-admin .tabela-ofertas tr {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto 16px;
+    padding: 6px 14px 12px;
+    border: 1px solid #eadde5;
+    border-radius: 14px;
+    background-color: #ffffff;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
+  }
+
+  /* Cada campo ocupa o cartão INTEIRO.
+     O width: 100% !important cancela as larguras de coluna
+     do desktop (11%, 14%...) que espremiam o texto até
+     virar uma letra por linha. */
+  .pagina-admin .tabela-agenda td,
+  .pagina-admin .tabela-estoque td,
+  .pagina-admin .tabela-ofertas td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100% !important;
+    max-width: 100%;
+    padding: 7px 0;
+    border-bottom: 1px solid #f6efe9;
+    text-align: right;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    font-size: 14px;
+  }
+
+  .pagina-admin .tabela-agenda td:last-child,
+  .pagina-admin .tabela-estoque td:last-child,
+  .pagina-admin .tabela-ofertas td:last-child {
+    border-bottom: none;
+  }
+
+  /* Etiquetas dos campos (laranja, à esquerda) */
+  .pagina-admin .tabela-agenda td::before,
+  .pagina-admin .tabela-estoque td::before,
+  .pagina-admin .tabela-ofertas td::before {
+    flex-shrink: 0;
+    color: #e68d25;
+    font-weight: bold;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  /* Primeira informação do cartão vira o título dele */
+  .pagina-admin .tabela-agenda td:nth-child(1) {
+    justify-content: flex-start;
+    padding: 10px 0 12px;
+    color: #e68d25;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: left;
+  }
+
+  .pagina-admin .tabela-estoque td.estoque-celula-produto,
+  .pagina-admin .tabela-ofertas td:nth-child(1) {
+    display: flex;
+    justify-content: flex-start;
+    width: 100% !important;
+    padding: 10px 0 12px;
+    color: #2b2b2b;
+    font-size: 15px;
+    font-weight: bold;
+    text-align: left;
+  }
+
+  .pagina-admin .tabela-estoque .estoque-imagem,
+  .pagina-admin .tabela-ofertas .imagem-oferta-tabela {
+    width: 48px;
+    height: 48px;
+    max-width: 48px;
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+
+  /* Nome do produto ao lado da foto ocupa o resto do cartão */
+  .pagina-admin .tabela-estoque .estoque-celula-produto span {
+    flex: 1;
+    min-width: 0;
+    text-align: left;
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  /* Etiquetas da AGENDA */
+  .pagina-admin .tabela-agenda td:nth-child(2)::before { content: "Dono(a)"; }
+  .pagina-admin .tabela-agenda td:nth-child(3)::before { content: "Endereço"; }
+  .pagina-admin .tabela-agenda td:nth-child(4)::before { content: "Cell"; }
+  .pagina-admin .tabela-agenda td:nth-child(5)::before { content: "Serviço"; }
+  .pagina-admin .tabela-agenda td:nth-child(6)::before { content: "Horário"; }
+  .pagina-admin .tabela-agenda td:nth-child(7)::before { content: "Valor"; }
+
+  /* Etiquetas do ESTOQUE */
+  .pagina-admin .tabela-estoque td:nth-child(2)::before { content: "Marca"; }
+  .pagina-admin .tabela-estoque td:nth-child(3)::before { content: "Categoria"; }
+  .pagina-admin .tabela-estoque td:nth-child(4)::before { content: "Quantidade"; }
+  .pagina-admin .tabela-estoque td:nth-child(5)::before { content: "Preço"; }
+  .pagina-admin .tabela-estoque td:nth-child(6)::before { content: "Desconto"; }
+  .pagina-admin .tabela-estoque td:nth-child(7)::before { content: "Percentual"; }
+
+  /* Etiquetas das OFERTAS */
+  .pagina-admin .tabela-ofertas td:nth-child(2)::before { content: "Preço antigo"; }
+  .pagina-admin .tabela-ofertas td:nth-child(3)::before { content: "Preço promocional"; }
+  .pagina-admin .tabela-ofertas td:nth-child(4)::before { content: "Desconto"; }
+  .pagina-admin .tabela-ofertas td:nth-child(5)::before { content: "Início"; }
+  .pagina-admin .tabela-ofertas td:nth-child(6)::before { content: "Fim"; }
+
+  /* Linhas de aviso (Carregando...) sem etiqueta e centralizadas */
+  .pagina-admin td[colspan] {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .pagina-admin td[colspan]::before {
+    content: none;
+  }
+
+  /* Botões Editar / Apagar do cartão: grandes, lado a lado */
+  .pagina-admin .tabela-agenda .coluna-acoes,
+  .pagina-admin .tabela-estoque .coluna-acoes,
+  .pagina-admin .tabela-ofertas .coluna-acoes {
+    width: 100%;
+    justify-content: center;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid #f6efe9;
+  }
+
+  .pagina-admin .tabela-agenda .coluna-acoes button,
+  .pagina-admin .tabela-estoque .coluna-acoes button,
+  .pagina-admin .tabela-ofertas .coluna-acoes button,
+  .pagina-admin .botao-editar-estoque,
+  .pagina-admin .botao-apagar-estoque {
+    flex: 1;
+    margin: 0;
+    padding: 11px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+}
+
+/* =========================================
+   MODAIS NO CELULAR
+   Modal do tamanho da tela, com o título
+   visível no topo e rolagem até o Salvar.
+   ========================================= */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 12px;
+  }
+
+  .modal {
+    width: 100%;
+    padding: 25px 18px;
+  }
+
+  .modal h3 {
+    margin-bottom: 18px;
+    font-size: 20px;
+  }
+
+  /* Fonte 16px nos campos: evita o zoom automático
+     que o celular aplica ao tocar no campo */
+  #formAgendamento input,
+  #formAgendamento select,
+  #formNovoAgendamento input,
+  #formNovoAgendamento select,
+  #formNovaOferta input,
+  #formLogin input,
+  .pagina-admin .modal form input,
+  .pagina-admin .modal form select {
+    font-size: 16px;
   }
 }
