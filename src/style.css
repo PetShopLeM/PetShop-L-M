@@ -1,0 +1,1637 @@
+/* =========================================
+   RESET E CONFIGURAÇÕES GERAIS
+   ========================================= */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: Arial, sans-serif;
+  color: #333333;
+  background-color: #ffdd59;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.conteudo-principal {
+  width: 100%;
+  max-width: 1140px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px 40px;
+}
+
+/* =========================================
+   CABEÇALHO E LOGO
+   ========================================= */
+
+.cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  width: 100%;
+  padding: 20px 30px;
+  background-color: #ffdd59;
+}
+
+.logo-link {
+  display: inline-flex;
+  color: inherit;
+  text-decoration: none;
+}
+
+.logo-link:hover {
+  opacity: 0.85;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 32px;
+}
+
+.logo img {
+  width: 55px;
+  height: 55px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.logo span {
+  color: #e68d25;
+  font-weight: bold;
+}
+
+.cabecalho nav {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.cabecalho nav a {
+  color: #e68d25;
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.cabecalho nav a:hover {
+  color: #c9741a;
+}
+
+/* =========================================
+   BOTÕES GERAIS
+   ========================================= */
+
+button {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 25px;
+  color: #ffffff;
+  background-color: #e68d25;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background-color 0.15s ease;
+}
+
+button:hover {
+  background-color: #c9741a;
+}
+
+/* =========================================
+   SEÇÃO PRINCIPAL / HERO
+   ========================================= */
+
+.hero {
+  width: 100%;
+  padding: 40px 20px 30px;
+  text-align: center;
+}
+
+.destaque {
+  margin-bottom: 10px;
+  color: #e68d25;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.hero h2 {
+  margin-bottom: 15px;
+  color: #e68d25;
+  font-size: 38px;
+}
+
+.hero p:not(.destaque) {
+  margin-bottom: 25px;
+  color: #7a5416;
+  font-size: 18px;
+}
+
+/* =========================================
+   SEÇÕES DA VITRINE
+   ========================================= */
+
+.secao-vitrine {
+  width: 100%;
+  margin-top: 30px;
+}
+
+.cabecalho-vitrine {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.titulo-secao {
+  margin-bottom: 12px;
+  color: #2b2b2b;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: left;
+}
+
+.link-ver-mais {
+  color: #e68d25;
+  font-size: 15px;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.link-ver-mais:hover {
+  text-decoration: underline;
+}
+
+/* =========================================
+   CATEGORIAS
+   ========================================= */
+
+.grade-categorias {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 10px 4px 18px;
+  scrollbar-width: thin;
+}
+
+.item-categoria {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 80px;
+  padding: 0;
+  border: none;
+  color: #333333;
+  background: none;
+  font-size: 13px;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.item-categoria:hover {
+  color: #e68d25;
+  background: none;
+  transform: translateY(-3px);
+}
+
+.icone-categoria {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  font-size: 30px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.item-categoria.filtro-ativo .icone-categoria {
+  border: 3px solid #e68d25;
+  box-shadow: 0 4px 12px rgba(230, 141, 37, 0.35);
+}
+
+.item-categoria.filtro-ativo span {
+  color: #e68d25;
+}
+
+/* =========================================
+   PÁGINA DE PRODUTOS
+   ========================================= */
+
+.cabecalho-categoria-selecionada {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.link-voltar {
+  color: #7a5416;
+  font-size: 15px;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.link-voltar:hover {
+  text-decoration: underline;
+}
+
+.titulo-produtos-categoria {
+  color: #2b2b2b;
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.grade-produtos-catalogo {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 20px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.card-catalogo {
+  width: 100%;
+}
+
+/* =========================================
+   BANNERS E PRODUTOS
+   ========================================= */
+
+.linha-produtos {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 8px 4px 16px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+}
+
+.card-banner {
+  display: flex;
+  flex: 0 0 170px;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 320px;
+  padding: 20px 14px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f3eedd 0%, #ded7c3 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card-banner.banner-gato {
+  background: linear-gradient(180deg, #eae5df 0%, #cdc5bd 100%);
+}
+
+.banner-conteudo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  text-align: center;
+}
+
+.banner-tag {
+  color: #555555;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.banner-desconto {
+  margin: 4px 0 14px;
+  color: #1a1a1a;
+  font-size: 32px;
+  line-height: 1;
+}
+
+.banner-desconto small {
+  margin-left: 2px;
+  font-size: 14px;
+}
+
+.botao-banner {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 20px;
+  color: #ffffff;
+  background-color: #74b83b;
+  font-size: 13px;
+  font-weight: bold;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 3px 6px rgba(116, 184, 59, 0.35);
+}
+
+.botao-banner:hover {
+  background-color: #63a031;
+}
+
+/* Card do produto */
+
+.card-produto {
+  position: relative;
+  display: flex;
+  flex: 0 0 195px;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 14px;
+  border-radius: 16px;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.card-produto:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.tag-promo {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: #219ebc;
+  background-color: #e8f7fa;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.produto-imagem {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 120px;
+  min-height: 120px;
+  max-height: 120px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border-radius: 10px;
+  background-color: #fafafa;
+}
+
+.produto-imagem-real {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 110px;
+  border-radius: 10px;
+  object-fit: contain;
+  object-position: center;
+}
+
+.produto-emoji {
+  font-size: 54px;
+}
+
+.botao-carrinho {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  color: #ffffff;
+  background-color: #74b83b;
+  font-size: 16px;
+  box-shadow: 0 3px 8px rgba(116, 184, 59, 0.4);
+}
+
+.botao-carrinho:hover {
+  background-color: #63a031;
+}
+
+.produto-dados {
+  text-align: left;
+}
+
+.produto-marca {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  color: #888888;
+  font-size: 11px;
+}
+
+.produto-nota {
+  color: #e68d25;
+  font-weight: bold;
+}
+
+.produto-nome {
+  min-height: 34px;
+  margin-bottom: 8px;
+  color: #333333;
+  font-size: 13px;
+  font-weight: normal;
+  line-height: 1.35;
+}
+
+.preco-antigo {
+  margin-bottom: 2px;
+  color: #888888;
+  font-size: 11px;
+}
+
+.preco-atual {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  color: #1a1a1a;
+  font-size: 17px;
+  font-weight: bold;
+}
+
+.badge-desconto {
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #219ebc;
+  background-color: #e8f7fa;
+  font-size: 10px;
+}
+
+.preco-assinante {
+  margin-bottom: 4px;
+  color: #e68d25;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.rotulo-programada {
+  color: #e68d25;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+/* =========================================
+   RODAPÉ
+   ========================================= */
+
+.rodape {
+  width: 100%;
+  padding: 20px;
+  color: #ffffff;
+  background-color: #e68d25;
+  text-align: center;
+}
+
+/* =========================================
+   MODAIS E FORMULÁRIOS
+   ========================================= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-overlay.aberto {
+  display: flex;
+}
+
+.modal {
+  position: relative;
+  width: 90%;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 35px 30px;
+  border-radius: 12px;
+  background-color: #ffffff;
+  text-align: center;
+}
+
+.modal h3 {
+  margin-bottom: 25px;
+  color: #e68d25;
+  font-size: 24px;
+  text-align: center;
+}
+
+.modal-fechar {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  padding: 0;
+  border: none;
+  color: #e68d25;
+  background: none;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.modal-fechar:hover {
+  color: #c9741a;
+  background: none;
+}
+
+#formAgendamento,
+#formNovoAgendamento,
+#formNovaOferta,
+#formLogin {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+#formAgendamento label,
+#formNovoAgendamento label,
+#formNovaOferta label,
+#formLogin label {
+  display: block;
+  margin-bottom: 4px;
+  color: #e68d25;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+#formAgendamento input,
+#formAgendamento select,
+#formNovoAgendamento input,
+#formNovoAgendamento select,
+#formNovaOferta input,
+#formLogin input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d9c4d1;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+#formAgendamento input[readonly] {
+  color: #e68d25;
+  background-color: #f3eef1;
+  font-weight: bold;
+  cursor: not-allowed;
+}
+
+.modal-enviar {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  border: none;
+  border-radius: 25px;
+  color: #ffffff;
+  background-color: #e68d25;
+  font-size: 16px;
+}
+
+/* =========================================
+   PÁGINA ADMINISTRATIVA
+   ========================================= */
+
+.pagina-admin {
+  min-height: 100vh;
+  margin: 0;
+  color: #e68d25;
+  background-color: #ffffff;
+}
+
+.pagina-admin main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: calc(100vh - 150px);
+  padding: 50px 20px;
+  background-color: #ffffff;
+}
+
+.pagina-admin .secao-agenda,
+.pagina-admin .secao-estoque,
+.pagina-admin .secao-ofertas {
+  display: none;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  background-color: #ffffff;
+  text-align: center;
+}
+
+.pagina-admin .secao-agenda.visivel,
+.pagina-admin .secao-estoque.visivel,
+.pagina-admin .secao-ofertas.visivel {
+  display: block;
+}
+
+.pagina-admin .secao-agenda h2,
+.pagina-admin .secao-estoque h2,
+.pagina-admin .secao-ofertas h2 {
+  margin-bottom: 25px;
+  color: #e68d25;
+}
+
+/* Menu administrativo */
+
+.menu-admin {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 15px 30px;
+}
+
+.menu-admin-acoes,
+.menu-admin-sessao {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.usuario-logado {
+  color: #e68d25;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.botao-admin {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 25px;
+  color: #ffffff;
+  background-color: #e68d25;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.botao-admin:hover {
+  background-color: #c9741a;
+}
+
+.pagina-admin .botao-admin.botao-aba.ativo {
+  background-color: #c9741a;
+}
+
+.botao-sair {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 25px;
+  color: #ffffff;
+  background-color: #d63031;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.botao-sair:hover {
+  background-color: #b71c1c;
+}
+
+/* Botão flutuante */
+
+.botao-mais,
+.pagina-admin #botaoAdicionar {
+  position: fixed;
+  right: 26px;
+  bottom: 26px;
+  z-index: 1100;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  color: #ffffff;
+  background-color: #e68d25;
+  font-size: 32px;
+  font-weight: normal;
+  line-height: 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.botao-mais:hover,
+.pagina-admin #botaoAdicionar:hover {
+  background-color: #c9741a;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+.pagina-admin #botaoAdicionar:active {
+  transform: scale(0.92);
+}
+
+/* =========================================
+   TABELAS (BASE COMUM)
+   ========================================= */
+
+.tabela-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding-bottom: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+/* =========================================
+   TABELA DA AGENDA (mesmo layout do estoque)
+   ========================================= */
+
+.pagina-admin .secao-agenda .tabela-container {
+  width: 100%;
+  max-width: 1050px;
+  margin: 0 auto;
+  padding-bottom: 10px;
+  overflow-x: hidden;
+}
+
+.pagina-admin .tabela-agenda {
+  width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: #e68d25;
+  background-color: #ffffff;
+}
+
+.pagina-admin .tabela-agenda th,
+.pagina-admin .tabela-agenda td {
+  padding: 8px 4px;
+  border-bottom: 1px solid #eadde5;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 12px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+}
+
+.pagina-admin .tabela-agenda th:nth-child(1),
+.pagina-admin .tabela-agenda td:nth-child(1) {
+  width: 24%;
+}
+
+.pagina-admin .tabela-agenda th:nth-child(2),
+.pagina-admin .tabela-agenda td:nth-child(2) {
+  width: 30%;
+}
+
+.pagina-admin .tabela-agenda th:nth-child(3),
+.pagina-admin .tabela-agenda td:nth-child(3) {
+  width: 18%;
+}
+
+.pagina-admin .tabela-agenda th:nth-child(4),
+.pagina-admin .tabela-agenda td:nth-child(4) {
+  width: 28%;
+}
+
+/* Botões Editar e Apagar da agenda */
+.pagina-admin .tabela-agenda .coluna-acoes button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  margin: 2px;
+  border: none;
+  border-radius: 16px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pagina-admin .tabela-agenda .coluna-acoes button:first-of-type {
+  background-color: #27ae60;
+}
+
+.pagina-admin .tabela-agenda .coluna-acoes button:last-of-type {
+  background-color: #d63031;
+}
+
+.pagina-admin .tabela-agenda .coluna-acoes button:first-of-type:hover {
+  background-color: #1e8449;
+  transform: translateY(-1px);
+}
+
+.pagina-admin .tabela-agenda .coluna-acoes button:last-of-type:hover {
+  background-color: #b71c1c;
+  transform: translateY(-1px);
+}
+
+.agenda-vazia {
+  display: none;
+  margin-top: 20px;
+  color: #7a5416;
+  font-weight: bold;
+}
+
+/* =========================================
+   TABELA DE ESTOQUE
+   ========================================= */
+
+.pagina-admin .secao-estoque {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  text-align: center;
+}
+
+.pagina-admin .secao-estoque h2 {
+  margin-bottom: 22px;
+  text-align: center;
+}
+
+.pagina-admin .secao-estoque .aviso-estoque {
+  margin-bottom: 25px;
+  color: #7a5416;
+  text-align: center;
+}
+
+/* Container central da tabela */
+.pagina-admin .secao-estoque .tabela-container {
+  width: 100%;
+  max-width: 1050px;
+  margin: 0 auto;
+  padding-bottom: 10px;
+  overflow-x: hidden;
+}
+
+/* Tabela */
+.pagina-admin .tabela-estoque {
+  width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: #e68d25;
+  background-color: #ffffff;
+}
+
+/* Cabeçalho e células */
+.pagina-admin .tabela-estoque th,
+.pagina-admin .tabela-estoque td {
+  padding: 8px 4px;
+  border-bottom: 1px solid #eadde5;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 12px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+}
+
+/* Largura das colunas */
+.pagina-admin .tabela-estoque th:nth-child(1),
+.pagina-admin .tabela-estoque td:nth-child(1) {
+  width: 15%;
+}
+
+.pagina-admin .tabela-estoque th:nth-child(2),
+.pagina-admin .tabela-estoque td:nth-child(2) {
+  width: 14%;
+}
+
+.pagina-admin .tabela-estoque th:nth-child(3),
+.pagina-admin .tabela-estoque td:nth-child(3) {
+  width: 12%;
+}
+
+.pagina-admin .tabela-estoque th:nth-child(4),
+.pagina-admin .tabela-estoque td:nth-child(4) {
+  width: 9%;
+}
+
+.pagina-admin .tabela-estoque th:nth-child(5),
+.pagina-admin .tabela-estoque td:nth-child(5) {
+  width: 12%;
+}
+
+.pagina-admin .tabela-estoque th:nth-child(6),
+.pagina-admin .tabela-estoque td:nth-child(6),
+.pagina-admin .tabela-estoque th:nth-child(7),
+.pagina-admin .tabela-estoque td:nth-child(7) {
+  width: 8%;
+}
+
+.pagina-admin .tabela-estoque th:nth-child(8),
+.pagina-admin .tabela-estoque td:nth-child(8) {
+  width: 22%;
+}
+
+/* Produto, imagem e nome — colados e centralizados */
+.pagina-admin .tabela-estoque td.estoque-celula-produto {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  padding: 10px 6px;
+}
+
+.pagina-admin .tabela-estoque .estoque-imagem {
+  display: inline-block;
+  vertical-align: middle;
+  width: 40px;
+  height: 40px;
+  max-width: 40px;
+  margin-right: 6px;
+  border-radius: 6px;
+  background-color: #fafafa;
+  object-fit: contain;
+}
+
+.pagina-admin .tabela-estoque .estoque-celula-produto span {
+  display: inline;
+  vertical-align: middle;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Coluna de ações */
+.pagina-admin .tabela-estoque .coluna-acoes {
+  width: 22%;
+  min-width: 0;
+  white-space: normal;
+  text-align: center;
+}
+
+/* Botão Editar do estoque */
+.pagina-admin .botao-editar-estoque {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  margin: 2px;
+  border: none;
+  border-radius: 16px;
+  color: #ffffff;
+  background-color: #27ae60;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pagina-admin .botao-editar-estoque:hover {
+  background-color: #1e8449;
+  transform: translateY(-1px);
+}
+
+/* Botão Apagar do estoque */
+.pagina-admin .botao-apagar-estoque {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  margin: 2px;
+  border: none;
+  border-radius: 16px;
+  color: #ffffff;
+  background-color: #d63031;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pagina-admin .botao-apagar-estoque:hover {
+  background-color: #b71c1c;
+  transform: translateY(-1px);
+}
+
+/* Status do estoque */
+
+.estoque-ok {
+  color: #27ae60;
+  font-weight: bold;
+}
+
+.estoque-baixo {
+  color: #e68d25;
+  font-weight: bold;
+}
+
+.estoque-esgotado {
+  color: #d63031;
+  font-weight: bold;
+}
+
+.estoque-erro {
+  display: none;
+  margin-top: 18px;
+  color: #d63031;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* =========================================
+   TABELA DE OFERTAS (mesmo layout do estoque)
+   ========================================= */
+
+/* Container central da tabela */
+.pagina-admin .secao-ofertas .tabela-container {
+  width: 100%;
+  max-width: 1050px;
+  margin: 0 auto;
+  padding-bottom: 10px;
+  overflow-x: hidden;
+}
+
+/* Tabela */
+.pagina-admin .tabela-ofertas {
+  width: 100%;
+  min-width: 0;
+  margin: 0 auto;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: #e68d25;
+  background-color: #ffffff;
+}
+
+/* Cabeçalho e células */
+.pagina-admin .tabela-ofertas th,
+.pagina-admin .tabela-ofertas td {
+  padding: 8px 4px;
+  border-bottom: 1px solid #eadde5;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 12px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+}
+
+/* Largura das colunas (Nome, Preço antigo, Preço promocional, Desconto, Início, Fim, Ações) */
+.pagina-admin .tabela-ofertas th:nth-child(1),
+.pagina-admin .tabela-ofertas td:nth-child(1) {
+  width: 22%;
+}
+
+.pagina-admin .tabela-ofertas th:nth-child(2),
+.pagina-admin .tabela-ofertas td:nth-child(2) {
+  width: 16%;
+}
+
+.pagina-admin .tabela-ofertas th:nth-child(3),
+.pagina-admin .tabela-ofertas td:nth-child(3) {
+  width: 18%;
+}
+
+.pagina-admin .tabela-ofertas th:nth-child(4),
+.pagina-admin .tabela-ofertas td:nth-child(4) {
+  width: 10%;
+}
+
+.pagina-admin .tabela-ofertas th:nth-child(5),
+.pagina-admin .tabela-ofertas td:nth-child(5) {
+  width: 12%;
+}
+
+.pagina-admin .tabela-ofertas th:nth-child(6),
+.pagina-admin .tabela-ofertas td:nth-child(6) {
+  width: 12%;
+}
+
+.pagina-admin .tabela-ofertas th:nth-child(7),
+.pagina-admin .tabela-ofertas td:nth-child(7) {
+  width: 10%;
+}
+
+/* Botão Apagar das ofertas (mesmo estilo do estoque) */
+.pagina-admin .tabela-ofertas .coluna-acoes button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  margin: 2px;
+  border: none;
+  border-radius: 16px;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  background-color: #d63031;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pagina-admin .tabela-ofertas .coluna-acoes button:hover {
+  background-color: #b71c1c;
+  transform: translateY(-1px);
+}
+
+/* =========================================
+   SUGESTÕES DE PRODUTOS COM IMAGEM
+   ========================================= */
+
+.campo-busca-produto {
+  position: relative;
+  width: 100%;
+}
+
+#sugestoesOferta {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 100;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #d8c7bc;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+#sugestoesOferta.aberta {
+  display: block;
+}
+
+#sugestoesOferta .sugestao-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 62px;
+  gap: 10px;
+  padding: 8px 10px;
+  border: none;
+  border-bottom: 1px solid #eeeeee;
+  border-radius: 0;
+  color: #333333;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: normal;
+  text-align: left;
+}
+
+#sugestoesOferta .sugestao-item:last-child {
+  border-bottom: none;
+}
+
+#sugestoesOferta .sugestao-item:hover {
+  background: #fff3e0;
+}
+
+#sugestoesOferta .sugestao-item img {
+  display: block;
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  max-width: 46px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #f2f2f2;
+}
+
+#sugestoesOferta .sugestao-sem-imagem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border-radius: 8px;
+  background: #f2f2f2;
+  font-size: 22px;
+}
+
+#sugestoesOferta .sugestao-nome {
+  flex: 1;
+  overflow: hidden;
+  color: #333333;
+  font-weight: bold;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#sugestoesOferta .sugestao-preco {
+  color: #7a5416;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+#previewProdutoOferta {
+  display: none;
+  width: 90px;
+  height: 90px;
+  margin-top: 10px;
+  border: 2px solid #e68d25;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f5f5f5;
+}
+
+/* A prévia aparece sozinha assim que o JavaScript escolhe uma foto */
+#previewProdutoOferta[src]:not([src=""]) {
+  display: block;
+}
+
+/* =========================================
+   LOGIN
+   ========================================= */
+
+.secao-login {
+  width: 90%;
+  max-width: 420px;
+  padding: 35px 30px;
+  border-radius: 12px;
+  background-color: #ffffff;
+}
+
+.secao-login h2 {
+  margin-bottom: 25px;
+  color: #e68d25;
+}
+
+.erro-login {
+  min-height: 20px;
+  margin: 0;
+  color: #d63031;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: left;
+}
+
+/* =========================================
+   FORMULÁRIOS DOS MODAIS (estoque incluso)
+   ========================================= */
+
+.pagina-admin .modal form {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  margin: 0 auto;
+  text-align: left;
+}
+
+.pagina-admin .modal form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+  color: #e68d25;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.pagina-admin .modal form input,
+.pagina-admin .modal form select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d9c4d1;
+  border-radius: 8px;
+  background-color: #ffffff;
+  font-size: 15px;
+}
+
+.pagina-admin .modal form button:not(.modal-fechar) {
+  width: 100%;
+  margin-top: 16px;
+  padding: 12px;
+  border: none;
+  border-radius: 25px;
+  color: #ffffff;
+  background-color: #e68d25;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.pagina-admin .modal form button:not(.modal-fechar):hover {
+  background-color: #c9741a;
+}
+
+/* =========================================
+   AUTOCOMPLETE DE PRODUTOS (OFERTAS)
+   ========================================= */
+
+.campo-busca-produto {
+  position: relative;
+  width: 100%;
+}
+
+.sugestoes-produto {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 230px;
+  overflow-y: auto;
+  background-color: #ffffff;
+  border: 1px solid #d9c4d1;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+}
+
+.sugestoes-produto.aberta {
+  display: block;
+}
+
+.sugestao-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 0;
+  border-bottom: 1px solid #f0e6eb;
+  background-color: #ffffff;
+  color: #333333;
+  font-size: 15px;
+  font-weight: normal;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sugestao-item:last-child {
+  border-bottom: none;
+}
+
+.sugestao-item:hover {
+  background-color: #fff3e0;
+}
+
+.sugestao-item img,
+.sugestao-item .sugestao-sem-imagem {
+  display: block;
+  width: 42px;
+  height: 42px;
+  max-width: 42px;
+  object-fit: cover;
+  border-radius: 8px;
+  background-color: #f5f5f5;
+  flex-shrink: 0;
+}
+
+.sugestao-item .sugestao-sem-imagem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+.sugestao-item .sugestao-nome {
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sugestao-item .sugestao-preco {
+  margin-left: auto;
+  font-size: 13px;
+  color: #7a5416;
+  flex-shrink: 0;
+}
+
+.preview-produto-oferta {
+  display: block;
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #e68d25;
+  margin-top: 8px;
+}
+
+/* =========================================
+   FOTO NA TABELA DE OFERTAS
+   ========================================= */
+
+.pagina-admin .tabela-ofertas .imagem-oferta-tabela {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  margin-right: 8px;
+  border-radius: 8px;
+  object-fit: cover;
+  vertical-align: middle;
+  background: #f2f2f2;
+}
+
+/* Botão Editar das ofertas (verde, igual ao da agenda) */
+.pagina-admin .tabela-ofertas .coluna-acoes .botao-editar {
+  background-color: #27ae60;
+}
+
+.pagina-admin .tabela-ofertas .coluna-acoes .botao-editar:hover {
+  background-color: #27ae60;
+  transform: translateY(-1px);
+}
+
+/* Ofertas do painel admin na página principal */
+.card-oferta-admin .produto-imagem img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.aviso-estoque a {
+  color: #8a5a00;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.aviso-estoque a:hover {
+  color: #e68d25;
+}
+
+/* =========================================
+   RESPONSIVIDADE
+   ========================================= */
+
+@media (max-width: 768px) {
+  .cabecalho {
+    justify-content: center;
+  }
+
+  .logo {
+    font-size: 25px;
+  }
+
+  .hero h2 {
+    font-size: 28px;
+  }
+
+  .card-banner {
+    flex: 0 0 140px;
+    min-height: 280px;
+  }
+
+  .card-produto {
+    flex: 0 0 170px;
+  }
+
+  .grade-produtos-catalogo {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+  }
+
+  .icone-categoria {
+    width: 54px;
+    height: 54px;
+    font-size: 24px;
+  }
+
+  .menu-admin {
+    justify-content: center;
+    padding: 15px 10px;
+  }
+
+  .menu-admin-acoes,
+  .menu-admin-sessao {
+    justify-content: center;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .usuario-logado {
+    width: 100%;
+    text-align: center;
+  }
+
+  .produto-imagem-real {
+    width: 100%;
+    height: 100%;
+    padding: 10px;
+    object-fit: contain;
+  }
+
+  .pagina-admin main {
+    padding: 30px 10px;
+  }
+
+  .pagina-admin .secao-agenda,
+  .pagina-admin .secao-estoque,
+  .pagina-admin .secao-ofertas {
+    padding: 25px 10px;
+  }
+
+  .pagina-admin .secao-agenda .tabela-container,
+  .pagina-admin .secao-estoque .tabela-container {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .pagina-admin .tabela-agenda,
+  .pagina-admin .tabela-estoque {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .cabecalho {
+    padding: 15px;
+  }
+
+  .logo {
+    gap: 8px;
+    font-size: 21px;
+  }
+
+  .logo img {
+    width: 45px;
+    height: 45px;
+  }
+
+  .menu-admin-acoes,
+  .menu-admin-sessao {
+    gap: 8px;
+  }
+
+  .botao-admin,
+  .botao-sair {
+    padding: 9px 15px;
+    font-size: 14px;
+  }
+
+  .pagina-admin #botaoAdicionar {
+    right: 18px;
+    bottom: 18px;
+    width: 52px;
+    height: 52px;
+    font-size: 29px;
+  }
+
+  .pagina-admin .tabela-agenda .coluna-acoes button,
+  .pagina-admin .botao-editar-estoque,
+  .pagina-admin .botao-apagar-estoque {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .pagina-admin .tabela-estoque .estoque-imagem {
+    width: 34px;
+    height: 34px;
+    max-width: 34px;
+  }
+}

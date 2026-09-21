@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin - Pet Shop L&M</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+
+<body class="pagina-admin">
+  <header class="cabecalho cabecalho-admin">
+    <a href="index.html" class="logo-link" aria-label="Voltar ao início">
+      <h1 class="logo">
+        <img src="../assets/logo.png" alt="Logo do Pet Shop L&M">
+        <span>Painel Administrativo</span>
+      </h1>
+    </a>
+  </header>
+
+  <nav class="menu-admin">
+    <div class="menu-admin-acoes">
+      <button id="botaoAgenda" class="botao-admin botao-aba ativo" type="button">
+        Agenda
+      </button>
+
+      <button id="botaoEstoque" class="botao-admin botao-aba" type="button">
+        Estoque
+      </button>
+
+      <button id="botaoOfertas" class="botao-admin botao-aba" type="button">
+        Ofertas
+      </button>
+
+      <button
+        id="botaoAdicionar"
+        class="botao-mais"
+        type="button"
+        aria-label="Adicionar agendamento"
+      >
+        +
+      </button>
+    </div>
+
+    <div class="menu-admin-sessao">
+      <span id="usuarioLogado" class="usuario-logado"></span>
+      <button id="botaoSair" class="botao-sair" type="button">
+        Sair
+      </button>
+    </div>
+  </nav>
+
+  <main class="conteudo-principal">
+    <!-- SEÇÃO AGENDA -->
+    <section id="secaoAgenda" class="secao-admin secao-agenda visivel">
+      <h2>Agendamentos</h2>
+
+      <div class="tabela-container">
+        <table class="tabela-agenda">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Dono(a)</th>
+              <th>Endereço</th>
+              <th>Cell</th>
+              <th>Serviço</th>
+              <th>Horário</th>
+              <th>Valor</th>
+              <th class="coluna-acoes">Ações</th>
+            </tr>
+          </thead>
+
+          <tbody id="agenda-corpo"></tbody>
+        </table>
+      </div>
+
+      <p id="agendaVazia" class="agenda-vazia">
+        Nenhum agendamento ainda.
+      </p>
+    </section>
+
+    <!-- SEÇÃO ESTOQUE -->
+    <section id="secaoEstoque" class="secao-admin secao-estoque">
+      <h2>Controle de Estoque</h2>
+
+      <p class="aviso-estoque">
+  Produtos integrados em tempo real com o
+  <a
+    href="https://docs.google.com/spreadsheets/d/19AoW0WmQB9Ei62eZJOff3ljyWlLGS34MB4xxG6_I9fg/edit"
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    Google Planilhas
+  </a>.
+</p>
+
+      <div class="tabela-container">
+        <table class="tabela-estoque">
+          <thead>
+            <tr>
+              <th>Produto</th>
+              <th>Marca</th>
+              <th>Categoria</th>
+              <th>Quantidade</th>
+              <th>Preço</th>
+              <th>Desconto</th>
+              <th>Percentual</th>
+              <th class="coluna-acoes">Ações</th>
+            </tr>
+          </thead>
+
+          <tbody id="listaEstoque"></tbody>
+        </table>
+      </div>
+
+      <p id="estoqueVazio" class="agenda-vazia">
+        Nenhum produto cadastrado na planilha ainda.
+      </p>
+
+      <p id="estoqueErro" class="estoque-erro" style="display: none;"></p>
+    </section>
+
+    <!-- SEÇÃO OFERTAS -->
+    <section id="secaoOfertas" class="secao-admin secao-ofertas">
+      <h2>Ofertas</h2>
+
+      <div class="tabela-container">
+        <table class="tabela-ofertas">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Preço antigo</th>
+              <th>Preço promocional</th>
+              <th>Desconto</th>
+              <th>Início</th>
+              <th>Fim</th>
+              <th class="coluna-acoes">Ações</th>
+            </tr>
+          </thead>
+
+          <tbody id="listaOfertas"></tbody>
+        </table>
+      </div>
+
+      <p id="ofertasVazia" class="agenda-vazia">
+        Nenhuma oferta cadastrada ainda.
+      </p>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <p>© 2026 - Pet Shop L&M</p>
+  </footer>
+
+  <!-- MODAL DE NOVO AGENDAMENTO -->
+  <div id="modalNovo" class="modal-overlay">
+    <div class="modal">
+      <button id="fecharModalNovo" class="modal-fechar" type="button">&times;</button>
+      <h3>Novo Agendamento</h3>
+
+      <form id="formNovoAgendamento">
+        <label for="novoData">Data:</label>
+        <input type="date" id="novoData" name="data" required />
+
+        <label for="novoDono">Dono (a):</label>
+        <input type="text" id="novoDono" name="dono" required />
+
+        <label for="novoEndereco">Endereço:</label>
+        <input type="text" id="novoEndereco" name="endereco" />
+
+        <label for="novoCell">Cell:</label>
+        <input type="tel" id="novoCell" name="cell" placeholder="(00) 00000-0000" />
+
+        <label for="novoServico">Serviço:</label>
+        <input type="text" id="novoServico" name="servico" />
+
+        <label for="novoHorario">Horário:</label>
+        <input type="time" id="novoHorario" name="horario" required />
+
+        <label for="novoValor">Valor:</label>
+        <input
+          type="text"
+          id="novoValor"
+          name="valor"
+          inputmode="numeric"
+          placeholder="R$ 0,00"
+          required
+        />
+
+        <button type="submit" class="botao-salvar">Salvar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE PRODUTO DO ESTOQUE -->
+  <div id="modalNovoEstoque" class="modal-overlay">
+    <div class="modal">
+      <button id="fecharModalEstoque" class="modal-fechar" type="button">&times;</button>
+      <h3 id="tituloModalEstoque">Novo Produto no Estoque</h3>
+
+      <form id="formNovoEstoque">
+        <input type="hidden" id="estoqueLinha" name="linha" value="" />
+
+        <label for="estoqueProduto">Produto:</label>
+        <input type="text" id="estoqueProduto" name="produto" required />
+
+        <label for="estoqueMarca">Marca:</label>
+        <input type="text" id="estoqueMarca" name="marca" />
+
+        <label for="estoqueCategoria">Categoria:</label>
+        <input type="text" id="estoqueCategoria" name="categoria" />
+
+        <label for="estoqueQuantidade">Quantidade:</label>
+        <input type="number" id="estoqueQuantidade" name="quantidade" min="0" required />
+
+        <label for="estoquePreco">Preço:</label>
+        <input
+          type="text"
+          id="estoquePreco"
+          name="preco"
+          inputmode="numeric"
+          placeholder="R$ 0,00"
+        />
+
+        <input type="hidden" id="estoqueDesconto" name="desconto" />
+<input type="hidden" id="estoquePercentual" name="percentual" />
+
+        <input type="hidden" id="estoqueDesconto" name="desconto" />
+<input type="hidden" id="estoquePercentual" name="percentual" />
+
+        <label for="estoqueImagem">Imagem (Link/URL):</label>
+        <input type="url" id="estoqueImagem" name="imagem" placeholder="https://..." />
+
+        <button type="submit" id="botaoSalvarEstoque" class="botao-salvar">Salvar na Planilha</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE NOVA OFERTA -->
+  <div id="modalNovaOferta" class="modal-overlay">
+    <div class="modal">
+      <button id="fecharModalOferta" class="modal-fechar" type="button">&times;</button>
+      <h3>Nova Oferta</h3>
+
+      <form id="formNovaOferta">
+        <div class="campo-busca-produto">
+          <label for="ofertaNome">Nome do produto:</label>
+
+          <input
+            type="text"
+            id="ofertaNome"
+            name="nome"
+            autocomplete="off"
+            required
+          />
+
+          <div id="sugestoesOferta" class="sugestoes-produto"></div>
+
+          <img
+            id="previewProdutoOferta"
+            class="preview-produto-oferta"
+            alt="Imagem do produto selecionado"
+          />
+        </div>
+
+        <img
+          id="previewProdutoOferta"
+          class="preview-produto-oferta"
+          src=""
+          alt=""
+          style="display: none;"
+        />
+
+        <label for="ofertaDescricao">Categoria e Marca:</label>
+        <input type="text" id="ofertaDescricao" name="descricao" required />
+
+        <label for="ofertaImagem">Imagem (link):</label>
+        <input
+          type="url"
+          id="ofertaImagem"
+          name="imagem"
+          placeholder="https://..."
+        />
+
+        <label for="ofertaPrecoAntigo">Preço antigo:</label>
+        <input
+          type="text"
+          id="ofertaPrecoAntigo"
+          name="precoAntigo"
+          inputmode="numeric"
+          placeholder="R$ 0,00"
+        />
+
+        <label for="ofertaPrecoPromocional">Preço promocional:</label>
+        <input
+          type="text"
+          id="ofertaPrecoPromocional"
+          name="precoPromocional"
+          inputmode="numeric"
+          placeholder="R$ 0,00"
+          required
+        />
+
+        <label for="ofertaDesconto">Desconto (%):</label>
+        <input type="number" id="ofertaDesconto" name="desconto" min="0" max="100" />
+
+        <label for="ofertaInicio">Início:</label>
+        <input type="date" id="ofertaInicio" name="inicio" />
+
+        <label for="ofertaFim">Fim:</label>
+        <input type="date" id="ofertaFim" name="fim" />
+
+        <button type="submit" class="botao-salvar">Salvar</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="../admin.ts"></script>
+  <script type="module" src="../js/agenda-sync.js"></script>
+</body>
+</html>
