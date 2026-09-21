@@ -1,8 +1,11 @@
 require("dotenv").config({ path: ".env.local" });
 const crypto = require("crypto");
 
-const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID || "";
-const SHEET_NAME = process.env.GOOGLE_SHEET_NAME_ESTOQUE || "Produtos";
+const SPREADSHEET_ID =
+  process.env.GOOGLE_SPREADSHEET_ID_ESTOQUE || "";
+
+const SHEET_NAME =
+  process.env.GOOGLE_SHEET_NAME_ESTOQUE || "Estoque";
 
 function base64url(texto) {
   return Buffer.from(texto, "utf8").toString("base64url");
