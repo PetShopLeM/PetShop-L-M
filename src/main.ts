@@ -8,7 +8,7 @@ const camposPorte = document.querySelector<HTMLSelectElement>("#porte")!;
 const campoValor = document.querySelector<HTMLInputElement>("#valor")!;
 
 // Número do WhatsApp que vai receber a mensagem (com código do país e DDD, sem espaços ou símbolos)
-const numeroWhatsapp = "5511976349686";
+const numeroWhatsapp = "5511970264824";
 
 // Tabela de preços por porte do animal
 const precos: Record<string, number> = {
