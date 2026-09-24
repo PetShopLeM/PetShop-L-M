@@ -95,9 +95,10 @@ formAgendamento.addEventListener("submit", (evento) => {
 
 // ==========================================
 // OFERTAS DO PAINEL ADMIN NA PÁGINA PRINCIPAL
+// (agora buscam da mesma planilha via /api/ofertas)
 // ==========================================
 interface OfertaAdmin {
-  id: number;
+  linha: number;
   nome: string;
   descricao: string;
   imagem: string;
@@ -135,31 +136,63 @@ function formatarPrecoTela(valor: string): string {
   return texto;
 }
 
+// Converte datas da planilha (serial do Google, dd/mm/aaaa ou aaaa-mm-dd) para aaaa-mm-dd
+function converterDataParaISO(valor: string): string {
+  const texto = String(valor ?? "").trim();
+  if (!texto) return "";
+
+  if (/^\d+(\.\d+)?$/.test(texto)) {
+    const ms = Math.round((Number(texto) - 25569) * 86400 * 1000);
+    const data = new Date(ms);
+    const mes = String(data.getUTCMonth() + 1).padStart(2, "0");
+    const dia = String(data.getUTCDate()).padStart(2, "0");
+    return `${data.getUTCFullYear()}-${mes}-${dia}`;
+  }
+
+  const partes = texto.split("/");
+  if (partes.length === 3) {
+    const [dia, mes, ano] = partes;
+    return `${ano}-${mes.padStart(2, "0")}-${dia.padStart(2, "0")}`;
+  }
+
+  const iso = texto.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+
+  return "";
+}
+
 // Considera válida a oferta que já começou e ainda não venceu
 function ofertaDentroDoPeriodo(oferta: OfertaAdmin): boolean {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
-  if (oferta.inicio) {
-    const inicio = new Date(`${oferta.inicio}T00:00:00`);
+  const inicioISO = converterDataParaISO(oferta.inicio);
+  if (inicioISO) {
+    const inicio = new Date(`${inicioISO}T00:00:00`);
     if (!isNaN(inicio.getTime()) && inicio > hoje) return false;
   }
 
-  if (oferta.fim) {
-    const fim = new Date(`${oferta.fim}T00:00:00`);
+  const fimISO = converterDataParaISO(oferta.fim);
+  if (fimISO) {
+    const fim = new Date(`${fimISO}T00:00:00`);
     if (!isNaN(fim.getTime()) && fim < hoje) return false;
   }
 
   return true;
 }
 
-function renderizarOfertasAdmin(): void {
+async function carregarOfertasAdmin(): Promise<void> {
   if (!secaoOfertasAdmin || !linhaOfertasAdmin) return;
 
   let ofertas: OfertaAdmin[] = [];
 
   try {
-    ofertas = JSON.parse(localStorage.getItem("ofertas") || "[]");
+    const resposta = await fetch("/api/ofertas");
+    const dados = await resposta.json().catch(() => ({}));
+
+    if (resposta.ok) {
+      ofertas = (dados.ofertas || []) as OfertaAdmin[];
+    }
   } catch {
     ofertas = [];
   }
@@ -178,7 +211,7 @@ function renderizarOfertasAdmin(): void {
     .map((oferta) => {
       const precoAntigo = formatarPrecoTela(oferta.precoAntigo);
       const precoPromocional = formatarPrecoTela(oferta.precoPromocional);
-      const desconto = String(oferta.desconto || "").trim();
+      const desconto = String(oferta.desconto || "").replace("%", "").trim();
 
       const imagem = oferta.imagem
         ? `<img src="${escaparTextoHtml(oferta.imagem)}" alt="${escaparTextoHtml(oferta.nome)}">`
@@ -205,11 +238,11 @@ function renderizarOfertasAdmin(): void {
     .join("");
 }
 
-renderizarOfertasAdmin();
+carregarOfertasAdmin();
 
-// Atualiza sozinho se as ofertas forem alteradas em outra aba do mesmo navegador
-window.addEventListener("storage", (evento) => {
-  if (evento.key === "ofertas") {
-    renderizarOfertasAdmin();
+// Atualiza as ofertas quando o usuário volta para a aba da página inicial
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    carregarOfertasAdmin();
   }
 });

@@ -416,6 +416,14 @@ button:hover {
   background-color: #fafafa;
 }
 
+/* Corrige o zoom: a imagem se ajusta ao quadro sem cortar */
+.produto-imagem img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
 .produto-imagem-real {
   display: block;
   width: auto;

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -43,6 +43,18 @@
         <button class="item-categoria btn-filtro" data-categoria="gato">
           <div class="icone-categoria">🐱</div>
           <span>Gato</span>
+        </button>
+        <button class="item-categoria btn-filtro" data-categoria="passaro">
+          <div class="icone-categoria">🐦</div>
+          <span>Passário</span>
+        </button>
+        <button class="item-categoria btn-filtro" data-categoria="peixe">
+          <div class="icone-categoria">🐟</div>
+          <span>Peixe</span>
+        </button>
+        <button class="item-categoria btn-filtro" data-categoria="outros">
+          <div class="icone-categoria">🐰</div>
+          <span>Roedor</span>
         </button>
         <button class="item-categoria btn-filtro" data-categoria="casa">
           <div class="icone-categoria">🏠</div>
