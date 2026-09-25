@@ -4,30 +4,33 @@ const botaoMensagem = document.querySelector<HTMLButtonElement>("#botaoMensagem"
 const modal = document.querySelector<HTMLDivElement>("#modalAgendamento")!;
 const fecharModal = document.querySelector<HTMLButtonElement>("#fecharModal")!;
 const formAgendamento = document.querySelector<HTMLFormElement>("#formAgendamento")!;
-const camposPorte = document.querySelector<HTMLSelectElement>("#porte")!;
-const campoValor = document.querySelector<HTMLInputElement>("#valor")!;
+const campoValor = document.querySelector<HTMLInputElement>("#valor");
 
 // Número do WhatsApp que vai receber a mensagem (com código do país e DDD, sem espaços ou símbolos)
 const numeroWhatsapp = "5511970264824";
 
-// Tabela de preços por porte do animal
+// (Opcional) Se o modal tiver o campo de porte, o valor é calculado sozinho.
+const camposPorte = document.querySelector<HTMLSelectElement>("#porte");
 const precos: Record<string, number> = {
   pequeno: 50,
   medio: 70,
   grande: 100,
 };
 
-// Atualiza o valor automaticamente quando o porte é selecionado
-camposPorte.addEventListener("change", () => {
-  const precoSelecionado = precos[camposPorte.value];
+if (camposPorte) {
+  camposPorte.addEventListener("change", () => {
+    if (!campoValor) return;
 
-  campoValor.value = precoSelecionado
-    ? precoSelecionado.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-      })
-    : "";
-});
+    const precoSelecionado = precos[camposPorte.value];
+
+    campoValor.value = precoSelecionado
+      ? precoSelecionado.toLocaleString("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+        })
+      : "";
+  });
+}
 
 // Não deixa escolher uma data no passado
 const campoData = document.querySelector<HTMLInputElement>(
@@ -54,6 +57,85 @@ modal.addEventListener("click", (evento) => {
   }
 });
 
+// ==========================================
+// LISTA DE SERVIÇOS DO AGENDAMENTO
+// (mesma do admin: busca da aba Serviços da planilha)
+// ==========================================
+const botaoMostrarServicos =
+  document.querySelector<HTMLButtonElement>("#botaoMostrarServicos");
+
+const listaServicosAgendamento =
+  document.querySelector<HTMLDivElement>("#listaServicosAgendamento");
+
+botaoMostrarServicos?.addEventListener("click", () => {
+  if (!listaServicosAgendamento) return;
+
+  const abriu = listaServicosAgendamento.classList.toggle("aberto");
+
+  botaoMostrarServicos.textContent = abriu
+    ? "Ocultar serviços"
+    : "Mostrar serviços";
+});
+
+async function carregarServicosAgendamento(): Promise<void> {
+  if (!listaServicosAgendamento) return;
+
+  try {
+    const resposta = await fetch("/api/servicos");
+
+    if (!resposta.ok) {
+      throw new Error(`HTTP ${resposta.status}`);
+    }
+
+    const dados = await resposta.json().catch(() => ({}));
+
+    const listaBruta: any[] = Array.isArray(dados)
+      ? dados
+      : Array.isArray(dados.servicos)
+        ? dados.servicos
+        : [];
+
+    listaServicosAgendamento.innerHTML = "";
+
+    const servicosValidos = listaBruta
+      .map((servico: any) => ({
+        nome: String(servico?.nome ?? servico?.servico ?? "").trim(),
+        observacao: String(servico?.descricao ?? servico?.observacao ?? "").trim(),
+      }))
+      .filter((servico) => servico.nome);
+
+    if (servicosValidos.length === 0) {
+      listaServicosAgendamento.innerHTML =
+        '<p class="sem-servicos">Nenhum serviço cadastrado</p>';
+      return;
+    }
+
+    servicosValidos.forEach((servico) => {
+      const texto = servico.observacao
+        ? `${servico.nome} (${servico.observacao})`
+        : servico.nome;
+
+      const rotulo = document.createElement("label");
+      rotulo.className = "item-servico-agendamento";
+
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.name = "servico";
+      checkbox.value = texto;
+
+      rotulo.appendChild(checkbox);
+      rotulo.appendChild(document.createTextNode(texto));
+
+      listaServicosAgendamento!.appendChild(rotulo);
+    });
+  } catch {
+    listaServicosAgendamento.innerHTML =
+      '<p class="sem-servicos">Não foi possível carregar os serviços</p>';
+  }
+}
+
+carregarServicosAgendamento();
+
 // Envio do formulário via WhatsApp
 formAgendamento.addEventListener("submit", (evento) => {
   evento.preventDefault();
@@ -65,16 +147,16 @@ formAgendamento.addEventListener("submit", (evento) => {
   );
 
   const horarioAtual = new Date().toLocaleString("pt-BR");
+  const servicosSelecionados = dados.getAll("servico").join(", ");
 
   agendamentosSalvos.push({
     data: dados.get("data"),
     dono: dados.get("Dono(a)"),
-    animal: dados.get("animal"),
     endereco: dados.get("endereco"),
-    porte: dados.get("porte"),
-    raca: dados.get("raca"),
-    servico: dados.get("servico"),
-    valor: dados.get("valor"),
+    transporte: dados.get("transporte"),
+    cell: dados.get("cell"),
+    servico: servicosSelecionados,
+    valor: campoValor?.value || "",
     horario: dados.get("horario"),
     horarioISO: "",
     enviadoEm: horarioAtual,
@@ -90,12 +172,11 @@ formAgendamento.addEventListener("submit", (evento) => {
     `*Data:* ${dados.get("data")}\n` +
     `*Horário:* ${dados.get("horario")}\n` +
     `*Dono(a):* ${dados.get("Dono(a)")}\n` +
-    `*Animal:* ${dados.get("animal")}\n` +
-    `*Serviço:* ${dados.get("servico")}\n` +
     `*Endereço:* ${dados.get("endereco")}\n` +
-    `*Porte:* ${dados.get("porte")}\n` +
-    `*Raça:* ${dados.get("raca")}\n` +
-    `*Valor:* ${dados.get("valor")}`;
+    `*Transporte:* ${dados.get("transporte")}\n` +
+    `*Cell:* ${dados.get("cell")}\n` +
+    `*Serviço(s):* ${servicosSelecionados || "Não informado"}\n` +
+    `*Valor:* ${campoValor?.value || "A combinar"}`;
 
   const link = `https://wa.me/${numeroWhatsapp}?text=${encodeURIComponent(
     mensagem
@@ -104,7 +185,14 @@ formAgendamento.addEventListener("submit", (evento) => {
   window.open(link, "_blank");
 
   formAgendamento.reset();
-  campoValor.value = "";
+  if (campoValor) campoValor.value = "R$ 0,00";
+
+  // Recolhe a lista de serviços para a próxima abertura
+  listaServicosAgendamento?.classList.remove("aberto");
+  if (botaoMostrarServicos) {
+    botaoMostrarServicos.textContent = "Mostrar serviços";
+  }
+
   modal.classList.remove("aberto");
 });
 

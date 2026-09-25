@@ -65,8 +65,8 @@
         </div>
 
         <div class="campo-filtro">
-          <label for="filtroDono">Nomes: Dono(a) e Animal</label>
-          <input type="text" id="filtroDono" placeholder="Ex.: Anderson - Luke " />
+          <label for="filtroDono">Dono(a)</label>
+          <input type="text" id="filtroDono" placeholder="Ex.: Mel" />
         </div>
 
         <div class="campo-filtro">
@@ -98,7 +98,7 @@
           <thead>
             <tr>
               <th>Data</th>
-              <th>Nomes: Dono(a) e Animal</th>
+              <th>Dono(a)</th>
               <th>Endereço</th>
               <th>Transporte</th>
               <th>Cell</th>
@@ -244,11 +244,7 @@
     </section>
 
     <!-- SEÇÃO SERVIÇOS (mesmo layout das OFERTAS) -->
-    <section
-      id="secaoServicos"
-      class="secao-admin secao-servicos secao-ofertas"
-      style="display: none;"
-    >
+    <section id="secaoServicos" class="secao-admin secao-servicos secao-ofertas">
       <h2>Serviços</h2>
 
       <button
@@ -266,6 +262,7 @@
               <th>Serviço</th>
               <th>Descrição</th>
               <th>Preço</th>
+              <th>Imagem</th>
               <th class="coluna-acoes">Ações</th>
             </tr>
           </thead>
@@ -294,7 +291,7 @@
         <label for="novoData">Data:</label>
         <input type="date" id="novoData" name="data" required />
 
-        <label for="novoDono">Nomes: Dono(a) e Animal:</label>
+        <label for="novoDono">Dono (a):</label>
         <input type="text" id="novoDono" name="dono" required />
 
         <label for="novoEndereco">Endereço:</label>
@@ -493,6 +490,22 @@
           placeholder="R$ 0,00"
           required
         />
+
+        <label>
+          Imagem (escolher do dispositivo):
+          <input type="file" id="servicoImagemArquivo" accept="image/*" />
+        </label>
+
+        <img
+          id="previewImagemServico"
+          alt="Prévia da imagem"
+          style="display: none; width: 120px; height: 120px; object-fit: cover; border-radius: 12px; margin: 8px 0;"
+        />
+
+        <label>
+          Ou cole uma URL de imagem:
+          <input type="text" id="imagemServico" name="imagem" placeholder="https://..." />
+        </label>
 
         <button type="submit" class="botao-salvar">
           Salvar serviço

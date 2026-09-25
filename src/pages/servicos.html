@@ -5,13 +5,94 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Serviços - Pet Shop L&M</title>
   <link rel="stylesheet" href="../style.css" />
+  <style>
+    /* Estilos exclusivos da página de serviços */
+    .grade-servicos {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-top: 24px;
+}
+
+@media (max-width: 900px) {
+  .grade-servicos {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .grade-servicos {
+    grid-template-columns: 1fr;
+  }
+}
+
+    .cartao-servico {
+      display: flex;
+      flex-direction: column;
+      background-color: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .cartao-servico img,
+    .cartao-servico .servico-sem-imagem {
+      width: 100%;
+      height: 170px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .cartao-servico .servico-sem-imagem {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      background-color: #fff3cd;
+    }
+
+    .cartao-servico-conteudo {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px;
+      flex: 1;
+    }
+
+    .cartao-servico h3 {
+      font-size: 20px;
+      color: #333333;
+    }
+
+    .cartao-servico p {
+      font-size: 15px;
+      color: #666666;
+      line-height: 1.5;
+      flex: 1;
+    }
+
+    .cartao-servico-preco {
+      font-size: 20px;
+      font-weight: bold;
+      color: #e68d25;
+    }
+
+    .servicos-vazio {
+      margin-top: 24px;
+      text-align: center;
+      color: #666666;
+    }
+  </style>
 </head>
 <body>
   <header class="cabecalho">
-    <h1 class="logo">
-  <img src="../assets/logo.png" alt="Logo do Pet Shop L&M">
-  <span>Pet Shop L&M</span>
-</h1>
+    <a href="index.html" class="logo-link" aria-label="Voltar ao início">
+      <h1 class="logo">
+        <img src="../assets/logo.png" alt="Logo do Pet Shop L&M">
+        <span>Pet Shop L&M</span>
+      </h1>
+    </a>
     <nav>
       <a href="index.html">Início</a>
       <a href="servicos.html">Serviços</a>
@@ -19,10 +100,15 @@
     </nav>
   </header>
 
-  <main>
+  <main class="conteudo-principal">
     <section class="secao">
       <h2>Nossos Serviços</h2>
-      <p> </p>
+
+      <div id="listaServicos" class="grade-servicos"></div>
+
+      <p id="servicosVazio" class="servicos-vazio" style="display: none;">
+        Nenhum serviço cadastrado ainda.
+      </p>
     </section>
   </main>
 
@@ -30,6 +116,6 @@
     <p>© 2026 - Pet Shop L&M</p>
   </footer>
 
-  <script type="module" src="../main.ts"></script>
+  <script type="module" src="../servicos.ts"></script>
 </body>
 </html>

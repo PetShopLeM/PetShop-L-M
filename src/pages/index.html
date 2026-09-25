@@ -29,7 +29,7 @@
       <p class="destaque">Bem-vindo!</p>
       <h2>Cuidado e carinho para o seu melhor amigo</h2>
       <p>Banho, tosa, veterinário e muito mais em um só lugar.</p>
-      <button id="botaoMensagem">Agende agora</button>
+      <button id="botaoMensagem" type="button">Agende agora</button>
     </section>
 
     <!-- Seção de Categorias -->
@@ -66,7 +66,7 @@
       </div>
 
       <div id="linhaOfertasAdmin" class="linha-produtos"></div>
-    </section> 
+    </section>
   </main>
 
   <footer class="rodape">
@@ -76,52 +76,57 @@
   <!-- Modal de Agendamento -->
   <div id="modalAgendamento" class="modal-overlay">
     <div class="modal">
-      <button id="fecharModal" class="modal-fechar">&times;</button>
-      <h3>Agendar Horário</h3>
+      <button id="fecharModal" class="modal-fechar" type="button" aria-label="Fechar">&times;</button>
+      <h3>Novo Agendamento</h3>
 
       <form id="formAgendamento">
         <label for="data">Data:</label>
         <input type="date" id="data" name="data" required>
 
+        <label for="Dono(a)">Nomes: Dono(a) e Animal:</label>
+        <input type="text" id="Dono(a)" name="Dono(a)" placeholder="Nome do dono" required>
+
+        <label for="endereco">Endereço:</label>
+        <input type="text" id="endereco" name="endereco" placeholder="Rua, número e bairro" required>
+
+        <label for="transporte">Transporte:</label>
+        <select id="transporte" name="transporte" required>
+          <option value="Não - o cliente leva e busca o animal">
+            Não - o cliente leva e busca o animal
+          </option>
+          <option value="Sim - buscar o animal">Sim - (Apenas buscar)</option>
+          <option value="Sim - levar o animal">Sim - (Apenas levar)</option>
+          <option value="Sim - buscar e levar o animal">Sim - buscar e levar o animal</option>
+        </select>
+
+        <label for="cell">Cell:</label>
+        <input type="tel" id="cell" name="cell" placeholder="(00) 00000-0000" required>
+
+        <label>Serviço(s):</label>
+
+        <button
+          id="botaoMostrarServicos"
+          class="botao-mostrar-servicos"
+          type="button"
+        >
+          Mostrar serviços
+        </button>
+
+        <div
+          id="listaServicosAgendamento"
+          class="lista-servicos-agendamento"
+          style="display: none;"
+        >
+          <p>Carregando serviços...</p>
+        </div>
+
         <label for="horario">Horário:</label>
         <input type="time" id="horario" name="horario" required>
 
-        <label for="Dono(a)">Dono (a):</label>
-        <input type="text" id="Dono(a)" name="Dono(a)" required>
-
-        <label for="animal">Nome do Animal:</label>
-        <input type="text" id="animal" name="animal" placeholder="Ex.: Bidu" required>
-
-        <label for="servico">Tipo de serviço:</label>
-        <select id="servico" name="servico" required>
-          <option value="">Selecione</option>
-          <option value="Banho">Banho</option>
-          <option value="Tosa">Tosa</option>
-          <option value="Tosa Higênica">Tosa Higênica</option>
-          <option value="Banho e Tosa">Banho e Tosa</option>
-          <option value="Hidratação">Hidratação</option>
-          <option value="Corte de Unhas">Corte de Unhas</option>
-          <option value="Consulta Veterinária">Consulta Veterinária</option>
-        </select>
-
-        <label for="endereco">Endereço:</label>
-        <input type="text" id="endereco" name="endereco" required>
-
-        <label for="porte">Porte do Animal:</label>
-        <select id="porte" name="porte" required>
-          <option value="">Selecione</option>
-          <option value="pequeno">Pequeno</option>
-          <option value="medio">Médio</option>
-          <option value="grande">Grande</option>
-        </select>
-
-        <label for="raca">Raça:</label>
-        <input type="text" id="raca" name="raca" required>
-
         <label for="valor">Valor:</label>
-        <input type="text" id="valor" name="valor" readonly>
+        <input type="text" id="valor" name="valor" value="R$ 0,00" readonly>
 
-        <button type="submit" class="modal-enviar">Enviar</button>
+        <button type="submit" class="modal-enviar">Salvar</button>
       </form>
     </div>
   </div>

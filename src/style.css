@@ -2175,15 +2175,44 @@ button:hover {
   text-align: center;
 }
 
-/* =========================================
-   COLUNA OBSERVAÇÃO (AGENDA)
-   ========================================= */
+.imagem-servico-tabela {
+  display: block;
+  width: 70px;
+  height: 70px;
+  margin: 0 auto;
+  border-radius: 10px;
+  object-fit: cover;
+}
 
-.pagina-admin .tabela-agenda .celula-observacao {
-  min-width: 130px;
-  max-width: 250px;
-  font-size: 13px;
-  color: #e68d25;
+.secao-servicos td {
+  vertical-align: middle;
+}
+
+/* =========================================
+   FOTO DO PRODUTO: CENTRALIZADA SOB A COLUNA "PRODUTO"
+   ========================================= */
+.pagina-admin .tabela-estoque .estoque-celula-produto,
+#listaEstoque td:first-child {
+  text-align: center;
+  vertical-align: middle;
+  padding-top: 12px;
+}
+
+.pagina-admin .tabela-estoque .estoque-celula-produto img,
+#listaEstoque img {
+  display: block !important;
+  float: none !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  margin-top: 0 !important;
+  margin-bottom: 10px !important;
+}
+
+.pagina-admin .tabela-estoque .estoque-celula-produto span {
+  display: block;
+  text-align: center;
+  line-height: 1.4;
+  overflow-wrap: break-word;
 }
 
 /* =========================================

@@ -32,6 +32,7 @@ interface Servico {
   nome: string;
   descricao: string;
   preco: string;
+  imagem: string;
 }
 
 interface Agendamento {
@@ -1175,7 +1176,13 @@ async function carregarServicos(): Promise<void> {
       throw new Error(dados?.erro || "Falha ao carregar serviços.");
     }
 
-    servicosCache = (dados.servicos || []) as Servico[];
+    servicosCache = (dados.servicos || []).map((servico: any) => ({
+      linha: Number(servico?.linha) || 0,
+      nome: String(servico?.nome ?? servico?.servico ?? ""),
+      descricao: String(servico?.descricao ?? servico?.observacao ?? ""),
+      preco: String(servico?.preco ?? servico?.valor ?? ""),
+      imagem: String(servico?.imagem ?? ""),
+    }));
   } catch (erro: any) {
     servicosCache = [];
     console.error("Erro ao carregar serviços:", erro?.message);
@@ -1210,6 +1217,24 @@ function renderizarServicos(): void {
     const tdPreco = document.createElement("td");
     tdPreco.textContent = formatarValorPlanilha(servico.preco);
     tr.appendChild(tdPreco);
+
+    // Imagem vindaa da coluna D da planilha (URL)
+    const tdImagem = document.createElement("td");
+
+    if (servico.imagem) {
+      const imagem = document.createElement("img");
+      imagem.src = servico.imagem;
+      imagem.alt = servico.nome;
+      imagem.className = "imagem-servico-tabela";
+
+      imagem.onerror = () => {
+        imagem.style.display = "none";
+      };
+
+      tdImagem.appendChild(imagem);
+    }
+
+    tr.appendChild(tdImagem);
 
     const tdAcoes = document.createElement("td");
     tdAcoes.className = "coluna-acoes";
@@ -1254,25 +1279,165 @@ fecharModalServico?.addEventListener("click", () => {
   editandoServicoLinha = null;
 });
 
+// ==========================================
+// IMAGEM DO SERVIÇO (ARMAZENAMENTO INTERNO)
+// ==========================================
+const servicoImagemArquivo =
+  document.querySelector<HTMLInputElement>("#servicoImagemArquivo");
+const previewImagemServico =
+  document.querySelector<HTMLImageElement>("#previewImagemServico");
+
+let arquivoImagemServico: File | null = null;
+
+function limparImagemServico(): void {
+  arquivoImagemServico = null;
+  if (servicoImagemArquivo) servicoImagemArquivo.value = "";
+  if (previewImagemServico) {
+    previewImagemServico.src = "";
+    previewImagemServico.style.display = "none";
+  }
+}
+
+// Limpa a prévia ao abrir um serviço novo ou fechar o modal
+botaoAdicionarServico?.addEventListener("click", limparImagemServico);
+fecharModalServico?.addEventListener("click", limparImagemServico);
+
+// Reduz a foto para no máximo 1200px e converte em JPG
+// (fica leve o suficiente para enviar pela API)
+async function redimensionarImagem(arquivo: File): Promise<Blob> {
+  const bitmap = await createImageBitmap(arquivo);
+  const maxLado = 1200;
+  const escala = Math.min(1, maxLado / Math.max(bitmap.width, bitmap.height));
+  const largura = Math.max(1, Math.round(bitmap.width * escala));
+  const altura = Math.max(1, Math.round(bitmap.height * escala));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = largura;
+  canvas.height = altura;
+
+  const contexto = canvas.getContext("2d")!;
+  contexto.fillStyle = "#ffffff";
+  contexto.fillRect(0, 0, largura, altura);
+  contexto.drawImage(bitmap, 0, 0, largura, altura);
+
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error("Falha ao processar a imagem."))),
+      "image/jpeg",
+      0.8
+    );
+  });
+}
+
+// Envia a imagem para a API, que salva no Google Drive
+// e devolve o link público para gravar na planilha
+async function enviarImagemServico(conteudo: Blob): Promise<string> {
+  const base64 = await new Promise<string>((resolve, reject) => {
+    const leitor = new FileReader();
+    leitor.onload = () => resolve(String(leitor.result));
+    leitor.onerror = () => reject(new Error("Falha ao ler a imagem."));
+    leitor.readAsDataURL(conteudo);
+  });
+
+  const resposta = await fetch("/api/upload-imagem", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ imagem: base64 }),
+  });
+
+  const dados = await resposta.json().catch(() => ({}));
+  if (!resposta.ok) {
+    throw new Error(dados?.erro || "Falha ao enviar a imagem.");
+  }
+
+  return String(dados.url || "");
+}
+
+// Prévia assim que o usuário escolhe o arquivo
+servicoImagemArquivo?.addEventListener("change", () => {
+  const arquivo = servicoImagemArquivo.files?.[0] || null;
+  arquivoImagemServico = arquivo;
+
+  if (!previewImagemServico) return;
+
+  if (!arquivo) {
+    const campoImagem = formNovoServico?.elements.namedItem(
+      "imagem"
+    ) as HTMLInputElement | null;
+    if (campoImagem?.value) {
+      previewImagemServico.src = campoImagem.value;
+      previewImagemServico.style.display = "";
+    } else {
+      limparImagemServico();
+    }
+    return;
+  }
+
+  const leitor = new FileReader();
+  leitor.onload = () => {
+    if (!previewImagemServico) return;
+    previewImagemServico.src = String(leitor.result);
+    previewImagemServico.style.display = "";
+  };
+  leitor.readAsDataURL(arquivo);
+});
+
+// Prévia da imagem salva ao clicar em Editar
+listaServicos?.addEventListener("click", (evento) => {
+  const botao = (evento.target as HTMLElement).closest("button");
+  if (!botao || botao.textContent !== "Editar") return;
+
+  const servico = servicosCache.find((s) => s.linha === Number(botao.dataset.linha));
+
+  arquivoImagemServico = null;
+  if (servicoImagemArquivo) servicoImagemArquivo.value = "";
+
+  if (previewImagemServico) {
+    if (servico?.imagem) {
+      previewImagemServico.src = servico.imagem;
+      previewImagemServico.style.display = "";
+    } else {
+      previewImagemServico.src = "";
+      previewImagemServico.style.display = "none";
+    }
+  }
+});
+
 // Salvar serviço (POST novo / PATCH edição)
 formNovoServico?.addEventListener("submit", async (evento) => {
   evento.preventDefault();
 
   const dados = new FormData(formNovoServico);
+  const botaoSalvar = formNovoServico.querySelector<HTMLButtonElement>(".botao-salvar");
 
   const corpo = {
     linha: editandoServicoLinha ?? undefined,
     nome: String(dados.get("nome") || "").trim(),
     preco: String(dados.get("preco") || ""),
     descricao: String(dados.get("descricao") || ""),
+    imagem: String(dados.get("imagem") || "").trim(),
   };
 
   if (!corpo.nome) return;
 
-  const botaoSalvar = formNovoServico.querySelector<HTMLButtonElement>(".botao-salvar");
-  if (botaoSalvar) botaoSalvar.disabled = true;
-
   try {
+    // Se o usuário escolheu um arquivo do dispositivo, envia
+    // primeiro para a API (que salva no Drive e devolve o link)
+    if (arquivoImagemServico) {
+      if (botaoSalvar) {
+        botaoSalvar.disabled = true;
+        botaoSalvar.textContent = "Enviando imagem...";
+      }
+
+      const conteudo = await redimensionarImagem(arquivoImagemServico);
+      corpo.imagem = await enviarImagemServico(conteudo);
+    }
+
+    if (botaoSalvar) {
+      botaoSalvar.disabled = true;
+      botaoSalvar.textContent = "Salvando...";
+    }
+
     if (editandoServicoLinha === null) {
       const resposta = await fetch("/api/servicos", {
         method: "POST",
@@ -1297,12 +1462,16 @@ formNovoServico?.addEventListener("submit", async (evento) => {
 
     editandoServicoLinha = null;
     formNovoServico.reset();
+    limparImagemServico();
     modalNovoServico?.classList.remove("aberto");
     await carregarServicos();
   } catch (erro: any) {
     alert("Falha ao salvar serviço: " + erro.message);
   } finally {
-    if (botaoSalvar) botaoSalvar.disabled = false;
+    if (botaoSalvar) {
+      botaoSalvar.disabled = false;
+      botaoSalvar.textContent = "Salvar serviço";
+    }
   }
 });
 
@@ -1324,10 +1493,12 @@ listaServicos?.addEventListener("click", async (evento) => {
     const campoNome = formNovoServico.elements.namedItem("nome") as HTMLInputElement | null;
     const campoPreco = formNovoServico.elements.namedItem("preco") as HTMLInputElement | null;
     const campoDescricao = formNovoServico.elements.namedItem("descricao") as HTMLInputElement | null;
+    const campoImagem = formNovoServico.elements.namedItem("imagem") as HTMLInputElement | null;
 
     if (campoNome) campoNome.value = servico.nome;
     if (campoPreco) campoPreco.value = String(servico.preco ?? "");
     if (campoDescricao) campoDescricao.value = String(servico.descricao ?? "");
+    if (campoImagem) campoImagem.value = servico.imagem || "";
 
     const titulo = modalNovoServico.querySelector("h3");
     if (titulo) titulo.textContent = "Editar Serviço";
@@ -1691,6 +1862,7 @@ async function carregarObservacoesServicos(): Promise<void> {
       nome: String(s?.nome ?? s?.servico ?? "").trim(),
       descricao: String(s?.descricao ?? s?.observacao ?? "").trim(),
       preco: String(s?.preco ?? s?.valor ?? "").trim(),
+      imagem: String(s?.imagem ?? "").trim(),
     }));
   } catch {
     // Se falhar, a coluna só fica vazia — a agenda continua funcionando
