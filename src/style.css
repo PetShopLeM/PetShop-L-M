@@ -1374,11 +1374,6 @@ button:hover {
    AUTOCOMPLETE DE PRODUTOS (OFERTAS)
    ========================================= */
 
-.campo-busca-produto {
-  position: relative;
-  width: 100%;
-}
-
 .sugestoes-produto {
   display: none;
   position: absolute;
@@ -1760,15 +1755,6 @@ button:hover {
     text-align: left;
   }
 
-  .pagina-admin .tabela-estoque .estoque-imagem,
-  .pagina-admin .tabela-ofertas .imagem-oferta-tabela {
-    width: 48px;
-    height: 48px;
-    max-width: 48px;
-    margin-right: 10px;
-    flex-shrink: 0;
-  }
-
   /* Nome do produto ao lado da foto ocupa o resto do cartão */
   .pagina-admin .tabela-estoque .estoque-celula-produto span {
     flex: 1;
@@ -1778,13 +1764,14 @@ button:hover {
     word-break: normal;
   }
 
-  /* Etiquetas da AGENDA */
+  /* Etiquetas da AGENDA (com Transporte na 4ª coluna) */
   .pagina-admin .tabela-agenda td:nth-child(2)::before { content: "Dono(a)"; }
   .pagina-admin .tabela-agenda td:nth-child(3)::before { content: "Endereço"; }
-  .pagina-admin .tabela-agenda td:nth-child(4)::before { content: "Cell"; }
-  .pagina-admin .tabela-agenda td:nth-child(5)::before { content: "Serviço"; }
-  .pagina-admin .tabela-agenda td:nth-child(6)::before { content: "Horário"; }
-  .pagina-admin .tabela-agenda td:nth-child(7)::before { content: "Valor"; }
+  .pagina-admin .tabela-agenda td:nth-child(4)::before { content: "Transporte"; }
+  .pagina-admin .tabela-agenda td:nth-child(5)::before { content: "Cell"; }
+  .pagina-admin .tabela-agenda td:nth-child(6)::before { content: "Serviço"; }
+  .pagina-admin .tabela-agenda td:nth-child(7)::before { content: "Horário"; }
+  .pagina-admin .tabela-agenda td:nth-child(8)::before { content: "Valor"; }
 
   /* Etiquetas do ESTOQUE */
   .pagina-admin .tabela-estoque td:nth-child(2)::before { content: "Marca"; }
@@ -1835,6 +1822,387 @@ button:hover {
   }
 }
 
+#botaoAdicionarServico {
+  margin: 0 0 16px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 25px;
+  color: #ffffff;
+  background-color: #e68d25;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+#botaoAdicionarServico:hover {
+  background-color: #c9741a;
+}
+
+/* =========================================
+   ABA SERVIÇOS DO PAINEL ADMINISTRATIVO
+   ========================================= */
+
+.pagina-admin #botaoServicos {
+  display: inline-block;
+  visibility: visible;
+  opacity: 1;
+  padding: 10px 24px;
+  border: none;
+  border-radius: 25px;
+  color: #ffffff;
+  background-color: #e68d25;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.pagina-admin #botaoServicos:hover,
+.pagina-admin #botaoServicos.ativo {
+  color: #ffffff;
+  background-color: #c9741a;
+}
+
+.pagina-admin #secaoServicos {
+  width: 100%;
+}
+
+.pagina-admin #secaoServicos.visivel {
+  display: block;
+}
+
+.pagina-admin .tabela-servicos {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.pagina-admin .tabela-servicos th,
+.pagina-admin .tabela-servicos td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #eadde5;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.pagina-admin .tabela-servicos th {
+  color: #ffffff;
+  background-color: #e68d25;
+  font-weight: bold;
+}
+
+.pagina-admin .tabela-servicos tr:last-child td {
+  border-bottom: none;
+}
+
+.pagina-admin .tabela-servicos .coluna-acoes {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.pagina-admin .tabela-servicos .botao-editar,
+.pagina-admin .tabela-servicos .botao-apagar {
+  display: inline-block;
+  margin: 3px;
+  padding: 8px 14px;
+  border-radius: 18px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.pagina-admin .tabela-servicos .botao-editar {
+  background-color: #e68d25;
+}
+
+.pagina-admin .tabela-servicos .botao-editar:hover {
+  background-color: #c9741a;
+}
+
+.pagina-admin .tabela-servicos .botao-apagar {
+  background-color: #d9534f;
+}
+
+.pagina-admin .tabela-servicos .botao-apagar:hover {
+  background-color: #b52b27;
+}
+
+.pagina-admin #modalNovoServico textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 10px;
+  border: 1px solid #d8c8bd;
+  border-radius: 8px;
+  resize: vertical;
+  font-size: 16px;
+}
+
+/* =========================================
+   BOTÃO "+ ADICIONAR SERVIÇO" FLUTUANTE
+   (igual ao botão + das outras abas)
+   ========================================= */
+.pagina-admin #botaoAdicionarServico {
+  position: fixed;
+  right: 26px;
+  bottom: 26px;
+  z-index: 1100;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0;
+  padding: 0;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  color: #ffffff;
+  background-color: #e68d25;
+  font-size: 30px;
+  font-weight: bold;
+  line-height: 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.pagina-admin #botaoAdicionarServico:hover {
+  background-color: #c9741a;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
+}
+
+/* =========================================
+   BOTÃO MOSTRAR/OCULTAR SERVIÇOS
+   ========================================= */
+
+.botao-mostrar-servicos {
+  display: inline-block;
+  margin: 8px 0;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 8px;
+  background-color: #e68d25;
+  color: #ffffff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.botao-mostrar-servicos:hover {
+  background-color: #cf7412;
+}
+
+/* =========================================
+   LISTA DE SERVIÇOS DO AGENDAMENTO (MÚLTIPLA ESCOLHA)
+   ========================================= */
+
+/* Escondida por padrão (vence até o style="display:flex" inline) */
+#listaServicosAgendamento {
+  display: none !important;
+}
+
+/* Aberta: bloco simples que empilha as linhas verticalmente */
+#listaServicosAgendamento.aberto {
+  display: block !important;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 10px 14px;
+  margin: 8px 0 14px;
+  border: 1px solid #e68d25;
+  border-radius: 10px;
+  background-color: #fffdf5;
+  box-sizing: border-box;
+}
+
+/* Cada serviço = uma linha inteira: checkbox à esquerda, texto ao lado */
+#listaServicosAgendamento .item-servico-agendamento {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 10px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 4px 0 !important;
+  box-sizing: border-box !important;
+  text-align: left !important;
+  font-size: 15px;
+  line-height: 1.4;
+  color: #e68d25;
+  cursor: pointer;
+}
+
+/* Checkbox preso à esquerda, sem herdar posicionamento do modal */
+#listaServicosAgendamento .item-servico-agendamento input[type="checkbox"] {
+  position: static !important;
+  float: none !important;
+  flex: 0 0 auto !important;
+  order: -1 !important;
+  margin: 0 !important;
+  width: 17px !important;
+  height: 17px !important;
+  accent-color: #e68d25 !important;
+  cursor: pointer;
+}
+
+.item-servico-agendamento input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: #e68d25;
+  cursor: pointer;
+}
+
+/* =========================================
+   FILTROS DA AGENDA
+   ========================================= */
+
+.filtros-agenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0 auto 18px;
+  padding: 14px 16px;
+  background-color: #fffdf5;
+  border: 2px solid #e68d25;
+  border-radius: 14px;
+  box-sizing: border-box;
+}
+
+.campo-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1 1 130px;
+  min-width: 130px;
+  max-width: 190px;
+}
+
+.campo-filtro label {
+  font-size: 13px;
+  font-weight: bold;
+  color: #e68d25;
+  text-align: left;
+}
+
+.campo-filtro input,
+.campo-filtro select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #e68d25;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333333;
+  background-color: #ffffff;
+  box-sizing: border-box;
+}
+
+.campo-filtro input:focus,
+.campo-filtro select:focus {
+  outline: 2px solid #ffdd59;
+  border-color: #c9741a;
+}
+
+.botao-limpar-filtros {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 20px;
+  background-color: #e68d25;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.botao-limpar-filtros:hover {
+  background-color: #c9741a;
+}
+
+/* =========================================
+   CORREÇÃO DAS SEÇÕES DO PAINEL ADMIN
+   ========================================= */
+
+.pagina-admin main.conteudo-principal {
+  display: flex;
+  width: 100%;
+  min-height: 500px;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.pagina-admin .secao-admin {
+  display: none !important;
+  width: 100%;
+}
+
+.pagina-admin .secao-admin.visivel {
+  display: block !important;
+}
+
+.pagina-admin #secaoAgenda.visivel,
+.pagina-admin #secaoEstoque.visivel,
+.pagina-admin #secaoOfertas.visivel,
+.pagina-admin #secaoServicos.visivel {
+  display: block !important;
+}
+
+.pagina-admin .secao-admin h2 {
+  display: block;
+  margin: 20px 0;
+  color: #e68d25;
+  font-size: 28px;
+  text-align: center;
+}
+
+.pagina-admin .tabela-container {
+  display: block;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.pagina-admin .agenda-vazia {
+  display: block;
+  padding: 25px;
+  color: #555;
+  text-align: center;
+}
+
+/* =========================================
+   COLUNA OBSERVAÇÃO (AGENDA)
+   ========================================= */
+
+.pagina-admin .tabela-agenda .celula-observacao {
+  min-width: 130px;
+  max-width: 250px;
+  font-size: 13px;
+  color: #e68d25;
+}
+
+/* =========================================
+   SERVIÇOS — ETIQUETAS DOS CARTÕES NO CELULAR
+   ========================================= */
+@media (max-width: 768px) {
+  .pagina-admin #listaServicos td:nth-child(1)::before {
+    content: "Serviço";
+  }
+
+  .pagina-admin #listaServicos td:nth-child(2)::before {
+    content: "Descrição";
+  }
+
+  .pagina-admin #listaServicos td:nth-child(3)::before {
+    content: "Preço";
+  }
+}
+
 /* =========================================
    MODAIS NO CELULAR
    Modal do tamanho da tela, com o título
@@ -1866,5 +2234,118 @@ button:hover {
   .pagina-admin .modal form input,
   .pagina-admin .modal form select {
     font-size: 16px;
+  }
+
+  .pagina-admin #botaoAdicionarServico {
+    right: 18px;
+    bottom: 18px;
+    width: 52px;
+    height: 52px;
+    font-size: 29px;
+  }
+
+  .pagina-admin .tabela-servicos {
+    display: block;
+    width: 100%;
+    background: transparent;
+  }
+
+  .pagina-admin .tabela-servicos thead {
+    display: none;
+  }
+
+  .pagina-admin .tabela-servicos tbody {
+    display: block;
+    width: 100%;
+  }
+
+  .pagina-admin .tabela-servicos tr {
+    display: block;
+    width: 100%;
+    margin-bottom: 16px;
+    padding: 8px 14px;
+    border: 1px solid #eadde5;
+    border-radius: 14px;
+    background-color: #ffffff;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07);
+  }
+
+  .pagina-admin .tabela-servicos td {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 9px 0;
+    border-bottom: 1px solid #f6efe9;
+    text-align: right;
+    overflow-wrap: break-word;
+  }
+
+  .pagina-admin .tabela-servicos td::before {
+    flex-shrink: 0;
+    color: #e68d25;
+    font-weight: bold;
+    font-size: 13px;
+    text-align: left;
+  }
+
+  .pagina-admin .tabela-servicos td.coluna-acoes {
+    justify-content: center;
+    border-bottom: none;
+  }
+
+  .pagina-admin .tabela-servicos td.coluna-acoes::before {
+    content: none;
+  }
+
+  .pagina-admin .tabela-servicos .botao-editar,
+  .pagina-admin .tabela-servicos .botao-apagar {
+    flex: 1;
+    padding: 10px 8px;
+  }
+}
+
+/* =========================================
+   TAMANHO FINAL DAS MINIATURAS DO ESTOQUE
+   Este bloco é o último: ele VENCE todas as
+   regras antigas de imagem que existirem acima.
+   Para mudar o tamanho das fotos, altere SÓ os
+   valores aqui (60px no computador, 44px no celular).
+   ========================================= */
+@media (min-width: 769px) {
+  .pagina-admin .tabela-estoque .estoque-imagem,
+  .pagina-admin .tabela-estoque td img,
+  #listaEstoque img,
+  .imagem-estoque-tabela {
+    width: 60px !important;
+    height: 60px !important;
+    max-width: 60px !important;
+    max-height: 60px !important;
+    min-width: 60px !important;
+    min-height: 60px !important;
+    margin: 0 8px 0 0 !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
+    object-fit: cover !important;
+    vertical-align: middle !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .pagina-admin .tabela-estoque .estoque-imagem,
+  .pagina-admin .tabela-estoque td img,
+  #listaEstoque img,
+  .imagem-estoque-tabela {
+    width: 44px !important;
+    height: 44px !important;
+    max-width: 44px !important;
+    max-height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    margin: 0 8px 0 0 !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
+    object-fit: cover !important;
+    vertical-align: middle !important;
   }
 }

@@ -1,11 +1,8 @@
 require("dotenv").config({ path: ".env.local" });
 const crypto = require("crypto");
 
-const SPREADSHEET_ID =
-  process.env.GOOGLE_SPREADSHEET_ID_ESTOQUE || "";
-
-const SHEET_NAME =
-  process.env.GOOGLE_SHEET_NAME_ESTOQUE || "Estoque";
+const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID_ESTOQUE || "";
+const SHEET_NAME = process.env.GOOGLE_SHEET_NAME_ESTOQUE || "Estoque";
 
 function base64url(texto) {
   return Buffer.from(texto, "utf8").toString("base64url");
@@ -17,10 +14,10 @@ async function getAccessToken() {
   privateKey = privateKey.replace(/\\n/g, "\n");
 
   if (!email) {
-    throw new Error("Variavel GOOGLE_SERVICE_ACCOUNT_EMAIL nao configurada na Vercel.");
+    throw new Error("Variavel GOOGLE_SERVICE_ACCOUNT_EMAIL nao configurada.");
   }
   if (!privateKey) {
-    throw new Error("Variavel GOOGLE_PRIVATE_KEY nao configurada na Vercel.");
+    throw new Error("Variavel GOOGLE_PRIVATE_KEY nao configurada.");
   }
 
   const agora = Math.floor(Date.now() / 1000);
@@ -67,11 +64,22 @@ async function chamarSheets(token, url, opcoes = {}) {
       ...(opcoes.headers || {}),
     },
   });
-  const dados = await resposta.json();
-  if (!resposta.ok) {
-    throw new Error(`Google Sheets (${resposta.status}): ${JSON.stringify(dados)}`);
+
+  const texto = await resposta.text();
+  let dados = null;
+  try {
+    dados = texto ? JSON.parse(texto) : null;
+  } catch {
+    dados = null;
   }
-  return dados;
+
+  if (!resposta.ok) {
+    if (dados && dados.error && dados.error.message) {
+      throw new Error(dados.error.message);
+    }
+    throw new Error(`Google respondeu ${resposta.status}: ${texto.slice(0, 150)}`);
+  }
+  return dados || {};
 }
 
 function montarProduto(row, numeroLinha) {
@@ -103,11 +111,26 @@ async function obterSheetId(token, base) {
 }
 
 module.exports = async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
+  }
+
   try {
     const token = await getAccessToken();
     const base = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}`;
     const metodo = req.method || "GET";
 
+    const corpo =
+      typeof req.body === "string"
+        ? JSON.parse(req.body || "{}")
+        : req.body || {};
+
+    // ================= GET (listar) =================
     if (metodo === "GET") {
       const url = `${base}/values/${encodeURIComponent(`${SHEET_NAME}!A3:H`)}`;
       const dados = await chamarSheets(token, url);
@@ -118,17 +141,17 @@ module.exports = async function handler(req, res) {
       return res.status(200).json(estoque);
     }
 
-    const corpo =
-      typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
-
+    // ================= POST (criar) =================
     if (metodo === "POST") {
       const linha = [
         corpo.produto, corpo.marca, corpo.categoria, corpo.quantidade,
         corpo.preco, corpo.desconto, corpo.percentual, corpo.imagem,
       ].map((v) => String(v ?? ""));
+
       const url = `${base}/values/${encodeURIComponent(
         `${SHEET_NAME}!A3:H`
       )}/append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
+
       await chamarSheets(token, url, {
         method: "POST",
         body: JSON.stringify({ values: [linha] }),
@@ -136,18 +159,22 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // ================= PATCH (editar) =================
     if (metodo === "PATCH") {
       const numeroLinha = Number(corpo.linha);
       if (!numeroLinha) {
         return res.status(400).json({ erro: "Informe o numero da linha." });
       }
+
       const linha = [
         corpo.produto, corpo.marca, corpo.categoria, corpo.quantidade,
         corpo.preco, corpo.desconto, corpo.percentual, corpo.imagem,
       ].map((v) => String(v ?? ""));
+
       const url = `${base}/values/${encodeURIComponent(
         `${SHEET_NAME}!A${numeroLinha}:H${numeroLinha}`
       )}?valueInputOption=USER_ENTERED`;
+
       await chamarSheets(token, url, {
         method: "PUT",
         body: JSON.stringify({ values: [linha] }),
@@ -155,15 +182,22 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
 
+    // ================= DELETE (excluir linha da planilha) =================
     if (metodo === "DELETE") {
-  const numeroLinha = Number(
-    corpo.linha || req.query?.linha
-  );
+      // Aceita a linha pelo corpo JSON ou pela query string (?linha=10)
+      let numeroLinha = Number(corpo.linha);
+      if (!numeroLinha && req.url) {
+        const parametros = new URL(req.url, "http://localhost").searchParams;
+        numeroLinha = Number(parametros.get("linha"));
+      }
+
       if (!numeroLinha) {
         return res.status(400).json({ erro: "Informe o numero da linha." });
       }
+
       const sheetId = await obterSheetId(token, base);
-      await chamarSheets(token, `${base}/batchUpdate`, {
+
+      await chamarSheets(token, `${base}:batchUpdate`, {
         method: "POST",
         body: JSON.stringify({
           requests: [
@@ -180,6 +214,7 @@ module.exports = async function handler(req, res) {
           ],
         }),
       });
+
       return res.status(200).json({ ok: true });
     }
 

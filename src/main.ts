@@ -29,6 +29,14 @@ camposPorte.addEventListener("change", () => {
     : "";
 });
 
+// Não deixa escolher uma data no passado
+const campoData = document.querySelector<HTMLInputElement>(
+  "#formAgendamento input[name='data']"
+);
+if (campoData) {
+  campoData.min = new Date().toLocaleDateString("en-CA");
+}
+
 // Abrir modal
 botaoMensagem.addEventListener("click", () => {
   modal.classList.add("aberto");
@@ -59,13 +67,17 @@ formAgendamento.addEventListener("submit", (evento) => {
   const horarioAtual = new Date().toLocaleString("pt-BR");
 
   agendamentosSalvos.push({
+    data: dados.get("data"),
     dono: dados.get("Dono(a)"),
+    animal: dados.get("animal"),
     endereco: dados.get("endereco"),
     porte: dados.get("porte"),
     raca: dados.get("raca"),
+    servico: dados.get("servico"),
     valor: dados.get("valor"),
-    horario: horarioAtual,
+    horario: dados.get("horario"),
     horarioISO: "",
+    enviadoEm: horarioAtual,
   });
 
   localStorage.setItem(
@@ -75,12 +87,15 @@ formAgendamento.addEventListener("submit", (evento) => {
 
   const mensagem =
     `Olá! Gostaria de agendar um horário:\n\n` +
+    `*Data:* ${dados.get("data")}\n` +
+    `*Horário:* ${dados.get("horario")}\n` +
     `*Dono(a):* ${dados.get("Dono(a)")}\n` +
+    `*Animal:* ${dados.get("animal")}\n` +
+    `*Serviço:* ${dados.get("servico")}\n` +
     `*Endereço:* ${dados.get("endereco")}\n` +
     `*Porte:* ${dados.get("porte")}\n` +
     `*Raça:* ${dados.get("raca")}\n` +
-    `*Valor:* ${dados.get("valor")}\n` +
-    `*Horário:* ${horarioAtual}`;
+    `*Valor:* ${dados.get("valor")}`;
 
   const link = `https://wa.me/${numeroWhatsapp}?text=${encodeURIComponent(
     mensagem

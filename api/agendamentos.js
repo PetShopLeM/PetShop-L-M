@@ -75,9 +75,7 @@ async function chamarSheets(token, url, opcoes = {}) {
     if (dados && dados.error && dados.error.message) {
       throw new Error(dados.error.message);
     }
-    throw new Error(
-      `Google respondeu ${resposta.status}: ${texto.slice(0, 150)}`
-    );
+    throw new Error(`Google respondeu ${resposta.status}: ${texto.slice(0, 150)}`);
   }
   return dados || {};
 }
@@ -112,9 +110,9 @@ module.exports = async (req, res) => {
     const base = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}`;
     const aba = abaFormatada();
 
-    // ================= GET =================
+    // ================= GET (LER - colunas A:H) =================
     if (req.method === "GET") {
-      const url = `${base}/values/${codificarRange(`${aba}!A:G`)}?majorDimension=ROWS`;
+      const url = `${base}/values/${codificarRange(`${aba}!A:H`)}?majorDimension=ROWS`;
       const dados = await chamarSheets(token, url);
       const linhas = dados.values || [];
 
@@ -123,7 +121,7 @@ module.exports = async (req, res) => {
         const vazia = linhas[i].every((c) => !String(c || "").trim());
         if (vazia) continue;
 
-        const [data, dono, endereco, cell, servico, horario, valor] = linhas[i];
+        const [data, dono, endereco, cell, servico, horario, valor, transporte] = linhas[i];
         agendamentos.push({
           linha: i + 1,
           data: data || "",
@@ -133,6 +131,7 @@ module.exports = async (req, res) => {
           servico: servico || "",
           horario: horario || "",
           valor: valor || "",
+          transporte: transporte || "",
         });
       }
 
@@ -140,7 +139,7 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // ================= POST (CRIAR - endpoint :append) =================
+    // ================= POST (CRIAR - colunas A:H) =================
     if (req.method === "POST") {
       const b = req.body || {};
       const valores = [[
@@ -151,10 +150,11 @@ module.exports = async (req, res) => {
         String(b.servico || ""),
         String(b.horario || ""),
         String(b.valor || ""),
+        String(b.transporte || ""),
       ]];
 
       const url =
-        `${base}/values/${codificarRange(`${aba}!A:G`)}:append` +
+        `${base}/values/${codificarRange(`${aba}!A:H`)}:append` +
         `?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
 
       await chamarSheets(token, url, {
@@ -166,10 +166,10 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // ================= PATCH (EDITAR LINHA) =================
+    // ================= PATCH (EDITAR LINHA - colunas A:H) =================
     if (req.method === "PATCH") {
       const b = req.body || {};
-      const linha = Number(b.linha);
+      const linha = Number(b.linha || req.query.linha);
       if (!linha || linha < 2) throw new Error("Linha invalida para edicao.");
 
       const valores = [[
@@ -180,9 +180,13 @@ module.exports = async (req, res) => {
         String(b.servico || ""),
         String(b.horario || ""),
         String(b.valor || ""),
+        String(b.transporte || ""),
       ]];
 
-      const url = `${base}/values/${codificarRange(`${aba}!A${linha}:G${linha}`)}?valueInputOption=USER_ENTERED`;
+      const url = `${base}/values/${codificarRange(
+        `${aba}!A${linha}:H${linha}`
+      )}?valueInputOption=USER_ENTERED`;
+
       await chamarSheets(token, url, {
         method: "PUT",
         body: JSON.stringify({ values: valores }),
@@ -192,7 +196,7 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // ================= DELETE =================
+    // ================= DELETE (APAGAR LINHA) =================
     if (req.method === "DELETE") {
       const linha = Number(req.query.linha);
       if (!linha || linha < 2) throw new Error("Linha invalida para exclusao.");

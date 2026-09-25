@@ -80,8 +80,29 @@
       <h3>Agendar Horário</h3>
 
       <form id="formAgendamento">
+        <label for="data">Data:</label>
+        <input type="date" id="data" name="data" required>
+
+        <label for="horario">Horário:</label>
+        <input type="time" id="horario" name="horario" required>
+
         <label for="Dono(a)">Dono (a):</label>
         <input type="text" id="Dono(a)" name="Dono(a)" required>
+
+        <label for="animal">Nome do Animal:</label>
+        <input type="text" id="animal" name="animal" placeholder="Ex.: Bidu" required>
+
+        <label for="servico">Tipo de serviço:</label>
+        <select id="servico" name="servico" required>
+          <option value="">Selecione</option>
+          <option value="Banho">Banho</option>
+          <option value="Tosa">Tosa</option>
+          <option value="Tosa Higênica">Tosa Higênica</option>
+          <option value="Banho e Tosa">Banho e Tosa</option>
+          <option value="Hidratação">Hidratação</option>
+          <option value="Corte de Unhas">Corte de Unhas</option>
+          <option value="Consulta Veterinária">Consulta Veterinária</option>
+        </select>
 
         <label for="endereco">Endereço:</label>
         <input type="text" id="endereco" name="endereco" required>

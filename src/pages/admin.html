@@ -31,6 +31,10 @@
         Ofertas
       </button>
 
+      <button id="botaoServicos" class="botao-admin botao-aba" type="button">
+        Serviços
+      </button>
+
       <button
         id="botaoAdicionar"
         class="botao-mais"
@@ -54,15 +58,52 @@
     <section id="secaoAgenda" class="secao-admin secao-agenda visivel">
       <h2>Agendamentos</h2>
 
+      <div class="filtros-agenda">
+        <div class="campo-filtro">
+          <label for="filtroData">Data</label>
+          <input type="text" id="filtroData" placeholder="Ex.: 25/09" />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="filtroDono">Nomes: Dono(a) e Animal</label>
+          <input type="text" id="filtroDono" placeholder="Ex.: Anderson - Luke " />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="filtroServico">Serviço</label>
+          <input type="text" id="filtroServico" placeholder="Ex.: Banho" />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="filtroHorario">Horário</label>
+          <input type="text" id="filtroHorario" placeholder="Ex.: 10:00" />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="filtroTransporte">Transporte</label>
+          <select id="filtroTransporte">
+            <option value="">Todos</option>
+            <option value="sim">Sim</option>
+            <option value="nao">Não</option>
+          </select>
+        </div>
+
+        <button id="botaoLimparFiltros" class="botao-limpar-filtros" type="button">
+          Limpar filtros
+        </button>
+      </div>
+
       <div class="tabela-container">
         <table class="tabela-agenda">
           <thead>
             <tr>
               <th>Data</th>
-              <th>Dono(a)</th>
+              <th>Nomes: Dono(a) e Animal</th>
               <th>Endereço</th>
+              <th>Transporte</th>
               <th>Cell</th>
               <th>Serviço</th>
+              <th>Observação</th>
               <th>Horário</th>
               <th>Valor</th>
               <th class="coluna-acoes">Ações</th>
@@ -83,15 +124,45 @@
       <h2>Controle de Estoque</h2>
 
       <p class="aviso-estoque">
-  Produtos integrados em tempo real com o
-  <a
-    href="https://docs.google.com/spreadsheets/d/1E9eugc3h4gEihU9aK-HWR-YQxSsTcEESwjm2QgHcmDE/edit?hl=pt-br&gid=0#gid=0"
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    Google Planilhas
-  </a>.
-</p>
+        Produtos integrados em tempo real com o
+        <a
+          href="https://docs.google.com/spreadsheets/d/1E9eugc3h4gEihU9aK-HWR-YQxSsTcEESwjm2QgHcmDE/edit?hl=pt-br&gid=0#gid=0"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Google Planilhas
+        </a>.
+      </p>
+
+      <div class="filtros-agenda">
+        <div class="campo-filtro">
+          <label for="filtroProduto">Produto</label>
+          <input type="text" id="filtroProduto" placeholder="Ex.: Coleira" />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="filtroMarca">Marca</label>
+          <input type="text" id="filtroMarca" placeholder="Ex.: Pedigree" />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="filtroCategoria">Categoria</label>
+          <input type="text" id="filtroCategoria" placeholder="Ex.: Acessórios" />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="filtroSituacaoEstoque">Estoque</label>
+          <select id="filtroSituacaoEstoque">
+            <option value="">Todos</option>
+            <option value="disponivel">Disponível</option>
+            <option value="zerado">Zerado</option>
+          </select>
+        </div>
+
+        <button id="botaoLimparFiltrosEstoque" class="botao-limpar-filtros" type="button">
+          Limpar filtros
+        </button>
+      </div>
 
       <div class="tabela-container">
         <table class="tabela-estoque">
@@ -123,6 +194,32 @@
     <section id="secaoOfertas" class="secao-admin secao-ofertas">
       <h2>Ofertas</h2>
 
+      <div class="filtros-agenda">
+        <div class="campo-filtro">
+          <label for="filtroOfertaNome">Nome</label>
+          <input type="text" id="filtroOfertaNome" placeholder="Ex.: Ração" />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="filtroOfertaDesconto">Desconto</label>
+          <input type="text" id="filtroOfertaDesconto" placeholder="Ex.: 10" />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="filtroOfertaInicio">Início</label>
+          <input type="text" id="filtroOfertaInicio" placeholder="Ex.: 25/09" />
+        </div>
+
+        <div class="campo-filtro">
+          <label for="filtroOfertaFim">Fim</label>
+          <input type="text" id="filtroOfertaFim" placeholder="Ex.: 30/09" />
+        </div>
+
+        <button id="botaoLimparFiltrosOfertas" class="botao-limpar-filtros" type="button">
+          Limpar filtros
+        </button>
+      </div>
+
       <div class="tabela-container">
         <table class="tabela-ofertas">
           <thead>
@@ -145,6 +242,42 @@
         Nenhuma oferta cadastrada ainda.
       </p>
     </section>
+
+    <!-- SEÇÃO SERVIÇOS (mesmo layout das OFERTAS) -->
+    <section
+      id="secaoServicos"
+      class="secao-admin secao-servicos secao-ofertas"
+      style="display: none;"
+    >
+      <h2>Serviços</h2>
+
+      <button
+        id="botaoAdicionarServico"
+        type="button"
+        aria-label="Adicionar serviço"
+      >
+        +
+      </button>
+
+      <div class="tabela-container">
+        <table class="tabela-ofertas">
+          <thead>
+            <tr>
+              <th>Serviço</th>
+              <th>Descrição</th>
+              <th>Preço</th>
+              <th class="coluna-acoes">Ações</th>
+            </tr>
+          </thead>
+
+          <tbody id="listaServicos"></tbody>
+        </table>
+      </div>
+
+      <p id="servicosVazio" class="agenda-vazia">
+        Nenhum serviço cadastrado ainda.
+      </p>
+    </section>
   </main>
 
   <footer class="rodape">
@@ -161,17 +294,38 @@
         <label for="novoData">Data:</label>
         <input type="date" id="novoData" name="data" required />
 
-        <label for="novoDono">Dono (a):</label>
+        <label for="novoDono">Nomes: Dono(a) e Animal:</label>
         <input type="text" id="novoDono" name="dono" required />
 
         <label for="novoEndereco">Endereço:</label>
         <input type="text" id="novoEndereco" name="endereco" />
 
+        <label for="novoTransporte">Transporte:</label>
+        <select id="novoTransporte" name="transporte">
+          <option value="Não">Não - o cliente leva e busca o animal</option>
+          <option value="Sim">Sim - buscar o animal na casa</option>
+        </select>
+
         <label for="novoCell">Cell:</label>
         <input type="tel" id="novoCell" name="cell" placeholder="(00) 00000-0000" />
 
-        <label for="novoServico">Serviço:</label>
-        <input type="text" id="novoServico" name="servico" />
+        <label>Serviço(s):</label>
+
+        <button
+          id="botaoMostrarServicos"
+          class="botao-mostrar-servicos"
+          type="button"
+        >
+          Mostrar serviços
+        </button>
+
+        <div
+          id="listaServicosAgendamento"
+          class="lista-servicos-agendamento"
+          style="display: none;"
+        >
+          <p>Carregando serviços...</p>
+        </div>
 
         <label for="novoHorario">Horário:</label>
         <input type="time" id="novoHorario" name="horario" required />
@@ -222,10 +376,7 @@
         />
 
         <input type="hidden" id="estoqueDesconto" name="desconto" />
-<input type="hidden" id="estoquePercentual" name="percentual" />
-
-        <input type="hidden" id="estoqueDesconto" name="desconto" />
-<input type="hidden" id="estoquePercentual" name="percentual" />
+        <input type="hidden" id="estoquePercentual" name="percentual" />
 
         <label for="estoqueImagem">Imagem (Link/URL):</label>
         <input type="url" id="estoqueImagem" name="imagem" placeholder="https://..." />
@@ -258,17 +409,11 @@
           <img
             id="previewProdutoOferta"
             class="preview-produto-oferta"
+            src=""
             alt="Imagem do produto selecionado"
+            style="display: none;"
           />
         </div>
-
-        <img
-          id="previewProdutoOferta"
-          class="preview-produto-oferta"
-          src=""
-          alt=""
-          style="display: none;"
-        />
 
         <label for="ofertaDescricao">Categoria e Marca:</label>
         <input type="text" id="ofertaDescricao" name="descricao" required />
@@ -310,6 +455,48 @@
         <input type="date" id="ofertaFim" name="fim" />
 
         <button type="submit" class="botao-salvar">Salvar</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL DE NOVO SERVIÇO -->
+  <div id="modalNovoServico" class="modal-overlay">
+    <div class="modal">
+      <button id="fecharModalServico" class="modal-fechar" type="button">
+        &times;
+      </button>
+
+      <h3>Novo Serviço</h3>
+
+      <form id="formNovoServico">
+        <label for="nomeServico">Nome do serviço:</label>
+        <input
+          type="text"
+          id="nomeServico"
+          name="nome"
+          placeholder="Ex.: Banho"
+          required
+        />
+
+        <label for="descricaoServico">Descrição:</label>
+        <textarea
+          id="descricaoServico"
+          name="descricao"
+          placeholder="Descreva o serviço"
+        ></textarea>
+
+        <label for="precoServico">Preço:</label>
+        <input
+          type="text"
+          id="precoServico"
+          name="preco"
+          placeholder="R$ 0,00"
+          required
+        />
+
+        <button type="submit" class="botao-salvar">
+          Salvar serviço
+        </button>
       </form>
     </div>
   </div>
