@@ -65,8 +65,8 @@
         </div>
 
         <div class="campo-filtro">
-          <label for="filtroDono">Dono(a)</label>
-          <input type="text" id="filtroDono" placeholder="Ex.: Mel" />
+          <label for="filtroDono">Nomes: Dono(a) e Animal</label>
+          <input type="text" id="filtroDono" placeholder="Ex.: Ale - Buck" />
         </div>
 
         <div class="campo-filtro">
@@ -88,6 +88,11 @@
           </select>
         </div>
 
+        <div class="campo-filtro">
+  <label for="filtroVencimento">Vencimento</label>
+  <input type="text" id="filtroVencimento" placeholder="Ex.: 25/09" />
+</div>
+
         <button id="botaoLimparFiltros" class="botao-limpar-filtros" type="button">
           Limpar filtros
         </button>
@@ -98,9 +103,10 @@
           <thead>
             <tr>
               <th>Data</th>
-              <th>Dono(a)</th>
+              <th>Nomes: Dono(a) e Animal</th>
               <th>Endereço</th>
               <th>Transporte</th>
+              <th>Aniversários</th>
               <th>Cell</th>
               <th>Serviço</th>
               <th>Observação</th>
@@ -126,7 +132,7 @@
       <p class="aviso-estoque">
         Produtos integrados em tempo real com o
         <a
-          href="https://docs.google.com/spreadsheets/d/1E9eugc3h4gEihU9aK-HWR-YQxSsTcEESwjm2QgHcmDE/edit?hl=pt-br&gid=0#gid=0"
+          href="https://docs.google.com/spreadsheets/d/1K8Ivz5gjyYJ-Jbq-ylBFqHBap_kndlzWgEsKu3W49d8/edit?hl=pt-br&gid=0#gid=0"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -175,6 +181,7 @@
               <th>Preço</th>
               <th>Desconto</th>
               <th>Percentual</th>
+              <th>Vecimento</th>
               <th class="coluna-acoes">Ações</th>
             </tr>
           </thead>
@@ -291,11 +298,32 @@
         <label for="novoData">Data:</label>
         <input type="date" id="novoData" name="data" required />
 
-        <label for="novoDono">Dono (a):</label>
-        <input type="text" id="novoDono" name="dono" required />
+        <label for="novoDono">Nomes: Dono(a) e Animal:</label>
+<input type="text" id="novoDono" name="dono" required />
+
+<label for="novoImagemAnimal">Foto do animal:</label>
+<input type="file" id="novoImagemAnimal" name="imagemAnimal" accept="image/*" />
+
+<img
+  id="previewImagemAnimal"
+  alt="Prévia da foto do animal"
+  style="
+    display: none;
+    width: 140px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin: 8px 0;
+  "
+/>
+
+<label for="novoEndereco">Endereço:</label>
 
         <label for="novoEndereco">Endereço:</label>
         <input type="text" id="novoEndereco" name="endereco" />
+
+        <label for="novoAniversario">Aniversário do animal:</label>
+        <input type="date" id="novoAniversario" name="aniversario" />
 
         <label for="novoTransporte">Transporte:</label>
         <select id="novoTransporte" name="transporte">
@@ -376,9 +404,12 @@
         <input type="hidden" id="estoquePercentual" name="percentual" />
 
         <label for="estoqueImagem">Imagem (Link/URL):</label>
-        <input type="url" id="estoqueImagem" name="imagem" placeholder="https://..." />
+<input type="url" id="estoqueImagem" name="imagem" placeholder="https://..." />
 
-        <button type="submit" id="botaoSalvarEstoque" class="botao-salvar">Salvar na Planilha</button>
+<label for="estoqueVencimento">Vencimento:</label>
+<input type="date" id="estoqueVencimento" name="vencimento" />
+
+<button type="submit" id="botaoSalvarEstoque" class="botao-salvar">Salvar na Planilha</button>
       </form>
     </div>
   </div>

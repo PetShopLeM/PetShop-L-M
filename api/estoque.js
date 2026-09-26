@@ -93,6 +93,7 @@ function montarProduto(row, numeroLinha) {
     desconto: row[5] || "",
     percentual: row[6] || "",
     imagem: row[7] || "",
+    vencimento: row[8] || "",
   };
 }
 
@@ -132,11 +133,11 @@ module.exports = async function handler(req, res) {
 
     // ================= GET (listar) =================
     if (metodo === "GET") {
-      const url = `${base}/values/${encodeURIComponent(`${SHEET_NAME}!A3:H`)}`;
+      const url = `${base}/values/${encodeURIComponent(`${SHEET_NAME}!A2:I`)}`;
       const dados = await chamarSheets(token, url);
       const linhas = dados.values || [];
       const estoque = linhas
-        .map((row, index) => montarProduto(row, index + 3))
+        .map((row, index) => montarProduto(row, index + 2))
         .filter((p) => p.produto.trim() !== "");
       return res.status(200).json(estoque);
     }
@@ -146,10 +147,11 @@ module.exports = async function handler(req, res) {
       const linha = [
         corpo.produto, corpo.marca, corpo.categoria, corpo.quantidade,
         corpo.preco, corpo.desconto, corpo.percentual, corpo.imagem,
+        corpo.vencimento,
       ].map((v) => String(v ?? ""));
 
       const url = `${base}/values/${encodeURIComponent(
-        `${SHEET_NAME}!A3:H`
+        `${SHEET_NAME}!A2:I`
       )}/append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
 
       await chamarSheets(token, url, {
@@ -169,10 +171,11 @@ module.exports = async function handler(req, res) {
       const linha = [
         corpo.produto, corpo.marca, corpo.categoria, corpo.quantidade,
         corpo.preco, corpo.desconto, corpo.percentual, corpo.imagem,
+        corpo.vencimento,
       ].map((v) => String(v ?? ""));
 
       const url = `${base}/values/${encodeURIComponent(
-        `${SHEET_NAME}!A${numeroLinha}:H${numeroLinha}`
+        `${SHEET_NAME}!A${numeroLinha}:I${numeroLinha}`
       )}?valueInputOption=USER_ENTERED`;
 
       await chamarSheets(token, url, {

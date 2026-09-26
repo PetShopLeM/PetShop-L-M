@@ -145,6 +145,29 @@ async function lerServicos(token, base, aba) {
   return servicos;
 }
 
+// Le uma tabela de portes fora da lista principal:
+// Banho = colunas F (porte) e G (valor) | Tosa = colunas I (porte) e J (valor)
+async function lerTabelaPortes(token, base, aba, colunaPorte, colunaValor) {
+  const url = `${base}/values/${codificarRange(
+    `${aba}!${colunaPorte}2:${colunaValor}`
+  )}?majorDimension=ROWS`;
+  const dados = await chamarSheets(token, url);
+  const linhas = dados.values || [];
+
+  const resultado = [];
+  for (let i = 0; i < linhas.length; i++) {
+    const coluna = linhas[i];
+    const porte = coluna[0] === undefined ? "" : String(coluna[0]).trim();
+    const valor = coluna[1] === undefined ? "" : String(coluna[1]).trim();
+
+    if (porte || valor) {
+      resultado.push({ linha: i + 2, porte, valor });
+    }
+  }
+
+  return resultado;
+}
+
 // Aceita a linha vindas de varios lugares:
 // req.query (Vercel), ?linha= na URL, ou dentro do JSON do corpo
 function extrairLinha(req) {
@@ -192,7 +215,23 @@ module.exports = async (req, res) => {
     // ================= GET =================
     if (req.method === "GET") {
       const servicos = await lerServicos(token, base, aba);
-      res.status(200).json({ servicos });
+
+      let banho = [];
+      let tosa = [];
+
+      try {
+        banho = await lerTabelaPortes(token, base, aba, "F", "G");
+      } catch {
+        banho = [];
+      }
+
+      try {
+        tosa = await lerTabelaPortes(token, base, aba, "I", "J");
+      } catch {
+        tosa = [];
+      }
+
+      res.status(200).json({ servicos, banho, tosa });
       return;
     }
 

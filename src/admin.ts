@@ -13,6 +13,7 @@ interface ItemEstoque {
   desconto: string | number;
   percentual: string | number;
   imagem: string;
+  vencimento: string;
 }
 
 interface Oferta {
@@ -45,6 +46,8 @@ interface Agendamento {
   horario: string;
   valor: string;
   transporte: string;
+  aniversario: string;
+  imagem: string;
 }
 
 // ==========================================
@@ -127,6 +130,92 @@ const botaoMostrarServicos = document.querySelector<HTMLButtonElement>(
 const listaServicosAgendamento = document.querySelector<HTMLDivElement>(
   "#listaServicosAgendamento"
 );
+
+// ==========================================
+// FOTO DO ANIMAL NO AGENDAMENTO (SUPABASE)
+// ==========================================
+const campoImagemAnimal = document.querySelector<HTMLInputElement>(
+  "#novoImagemAnimal"
+);
+const previewImagemAnimal = document.querySelector<HTMLImageElement>(
+  "#previewImagemAnimal"
+);
+
+let arquivoImagemAnimal: File | null = null;
+let imagemAnimalSalva = ""; // URL que já está salva (usada na edição)
+
+// Mostra a foto já salva (ou limpa tudo se vier vazia)
+function mostrarImagemSalvaAnimal(url: string): void {
+  imagemAnimalSalva = String(url || "");
+  arquivoImagemAnimal = null;
+  if (campoImagemAnimal) campoImagemAnimal.value = "";
+  if (previewImagemAnimal) {
+    if (imagemAnimalSalva) {
+      previewImagemAnimal.src = imagemAnimalSalva;
+      previewImagemAnimal.style.display = "";
+    } else {
+      previewImagemAnimal.src = "";
+      previewImagemAnimal.style.display = "none";
+    }
+  }
+}
+
+function limparImagemAnimal(): void {
+  mostrarImagemSalvaAnimal("");
+}
+
+// Envia a foto para a API, que salva no Supabase Storage
+// e devolve o link público para gravar no agendamento
+// Envia a foto para a API (api/upload-imagem.js), que salva no
+// Supabase Storage e devolve o link público para gravar no agendamento
+async function enviarImagemSupabase(conteudo: Blob): Promise<string> {
+  const base64 = await new Promise<string>((resolve, reject) => {
+    const leitor = new FileReader();
+    leitor.onload = () => resolve(String(leitor.result));
+    leitor.onerror = () => reject(new Error("Falha ao ler a imagem."));
+    leitor.readAsDataURL(conteudo);
+  });
+
+  const resposta = await fetch("/api/upload-imagem", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ imagem: base64 }),
+  });
+
+  const dados = await resposta.json().catch(() => ({}));
+  if (!resposta.ok) {
+    throw new Error(dados?.erro || "Falha ao enviar a foto.");
+  }
+
+  return String(dados.url || "");
+}
+
+// Prévia assim que o usuário escolhe o arquivo
+campoImagemAnimal?.addEventListener("change", () => {
+  const arquivo = campoImagemAnimal.files?.[0] || null;
+  arquivoImagemAnimal = arquivo;
+
+  if (!previewImagemAnimal) return;
+
+  if (!arquivo) {
+    if (imagemAnimalSalva) {
+      previewImagemAnimal.src = imagemAnimalSalva;
+      previewImagemAnimal.style.display = "";
+    } else {
+      previewImagemAnimal.src = "";
+      previewImagemAnimal.style.display = "none";
+    }
+    return;
+  }
+
+  const leitor = new FileReader();
+  leitor.onload = () => {
+    if (!previewImagemAnimal) return;
+    previewImagemAnimal.src = String(leitor.result);
+    previewImagemAnimal.style.display = "";
+  };
+  leitor.readAsDataURL(arquivo);
+});
 
 // ==========================================
 // MODAL DE ESTOQUE (GOOGLE SHEETS)
@@ -543,6 +632,122 @@ function normalizarDataPlanilha(valor: string): string {
   return valorLimpo;
 }
 
+function formatarVencimento(valor: string | number): string {
+  const texto = String(valor ?? "").trim();
+
+  if (!texto) return "";
+
+  // Data no formato yyyy-mm-dd
+  const iso = texto.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) {
+    return `${iso[3]}/${iso[2]}/${iso[1]}`;
+  }
+
+  // Data no formato dd/mm/aaaa
+  const brasileira = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (brasileira) {
+    return `${brasileira[1].padStart(2, "0")}/${brasileira[2].padStart(
+      2,
+      "0"
+    )}/${brasileira[3]}`;
+  }
+
+  // Número de série do Google Sheets
+  if (/^\d+(\.\d+)?$/.test(texto)) {
+    const data = new Date(
+      Math.round((Number(texto) - 25569) * 86400 * 1000)
+    );
+
+    if (!isNaN(data.getTime())) {
+      const dia = String(data.getUTCDate()).padStart(2, "0");
+      const mes = String(data.getUTCMonth() + 1).padStart(2, "0");
+      const ano = data.getUTCFullYear();
+
+      return `${dia}/${mes}/${ano}`;
+    }
+  }
+
+  return texto;
+}
+
+function vencimentoParaInput(valor: string | number): string {
+  const texto = String(valor ?? "").trim();
+
+  if (!texto) return "";
+
+  const iso = texto.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (iso) return texto;
+
+  const brasileira = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (brasileira) {
+    return `${brasileira[3]}-${brasileira[2].padStart(2, "0")}-${brasileira[1].padStart(
+      2,
+      "0"
+    )}`;
+  }
+
+  if (/^\d+(\.\d+)?$/.test(texto)) {
+    const data = new Date(
+      Math.round((Number(texto) - 25569) * 86400 * 1000)
+    );
+
+    if (!isNaN(data.getTime())) {
+      const ano = data.getUTCFullYear();
+      const mes = String(data.getUTCMonth() + 1).padStart(2, "0");
+      const dia = String(data.getUTCDate()).padStart(2, "0");
+
+      return `${ano}-${mes}-${dia}`;
+    }
+  }
+
+  return "";
+}
+
+// Aniversário: exibe como dd/mm/aaaa, venha a data como vier
+// (número da planilha, aaaa-mm-dd ou dd/mm/aaaa)
+function formatarAniversario(valor: string): string {
+  const texto = String(valor ?? "").trim();
+  if (!texto) return "";
+
+  // Data serial do Google Sheets (ex.: 44567)
+  if (/^\d+(\.\d+)?$/.test(texto)) {
+    const data = new Date(Math.round((Number(texto) - 25569) * 86400 * 1000));
+    if (!isNaN(data.getTime())) {
+      return data.toLocaleDateString("pt-BR");
+    }
+  }
+
+  // aaaa-mm-dd (vem do campo de data)
+  const iso = texto.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    const data = new Date(`${iso[1]}-${iso[2]}-${iso[3]}T00:00:00`);
+    if (!isNaN(data.getTime())) {
+      return data.toLocaleDateString("pt-BR");
+    }
+  }
+
+  return texto;
+}
+
+// Aniversário: converte para o formato do <input type="date">
+function aniversarioParaInput(valor: string): string {
+  const texto = String(valor ?? "").trim();
+  if (!texto) return "";
+
+  // Data serial do Google Sheets
+  if (/^\d+(\.\d+)?$/.test(texto)) {
+    const data = new Date(Math.round((Number(texto) - 25569) * 86400 * 1000));
+    if (!isNaN(data.getTime())) {
+      const ano = data.getUTCFullYear();
+      const mes = String(data.getUTCMonth() + 1).padStart(2, "0");
+      const dia = String(data.getUTCDate()).padStart(2, "0");
+      return `${ano}-${mes}-${dia}`;
+    }
+  }
+
+  return converterDataParaInput(texto);
+}
+
 async function carregarAgendamentos(): Promise<void> {
   try {
     const resposta = await fetch("/api/agendamentos");
@@ -554,7 +759,15 @@ async function carregarAgendamentos(): Promise<void> {
     }
 
     const agendamentos: Agendamento[] = await resposta.json();
-    agendamentosCache = agendamentos;
+
+    // Garante que os campos existam mesmo se a planilha
+    // ainda não tiver as colunas preenchidas
+    agendamentosCache = agendamentos.map((agendamento) => ({
+      ...agendamento,
+      aniversario: String(agendamento.aniversario ?? ""),
+      imagem: String(agendamento.imagem ?? ""),
+    }));
+
     renderizarAgenda();
   } catch (erro: any) {
     agendamentosCache = [];
@@ -574,9 +787,11 @@ function filtrarAgendamentos(): Agendamento[] {
     document.querySelector<HTMLInputElement>("#filtroHorario")?.value.trim().toLowerCase() || "";
   const filtroTransporte =
     document.querySelector<HTMLSelectElement>("#filtroTransporte")?.value || "";
+  const filtroAniversario =
+    document.querySelector<HTMLSelectElement>("#filtroAniversario")?.value || "";
 
   const temFiltro = Boolean(
-    filtroData || filtroDono || filtroServico || filtroHorario || filtroTransporte
+    filtroData || filtroDono || filtroServico || filtroHorario || filtroTransporte || filtroAniversario
   );
   if (!temFiltro) return agendamentosCache;
 
@@ -586,6 +801,7 @@ function filtrarAgendamentos(): Agendamento[] {
     const servico = (agendamento.servico || "").toLowerCase();
     const horario = (agendamento.horario || "").toLowerCase();
     const transporte = (agendamento.transporte || "").trim().toLowerCase();
+    const aniversario = (agendamento.aniversario || "").toLowerCase();
 
     const okData = !filtroData || data.includes(filtroData);
     const okDono = !filtroDono || dono.includes(filtroDono);
@@ -594,8 +810,9 @@ function filtrarAgendamentos(): Agendamento[] {
     const okTransporte =
       !filtroTransporte ||
       (filtroTransporte === "sim" ? transporte === "sim" : transporte !== "sim");
+    const okAniversario = !filtroAniversario || aniversario.includes(filtroAniversario);
 
-    return okData && okDono && okServico && okHorario && okTransporte;
+    return okData && okDono && okServico && okHorario && okTransporte && okAniversario;
   });
 }
 
@@ -609,13 +826,19 @@ document.querySelector<HTMLSelectElement>("#filtroTransporte")?.addEventListener
   renderizarAgenda();
 });
 
+document.querySelector<HTMLSelectElement>("#filtroAniversario")?.addEventListener("change", () => {
+  renderizarAgenda();
+});
+
 document.querySelector<HTMLButtonElement>("#botaoLimparFiltros")?.addEventListener("click", () => {
   ["filtroData", "filtroDono", "filtroServico", "filtroHorario"].forEach((id) => {
     const campo = document.querySelector<HTMLInputElement>(`#${id}`);
     if (campo) campo.value = "";
   });
-  const select = document.querySelector<HTMLSelectElement>("#filtroTransporte");
-  if (select) select.value = "";
+  const selectTransporte = document.querySelector<HTMLSelectElement>("#filtroTransporte");
+  if (selectTransporte) selectTransporte.value = "";
+  const selectAniversario = document.querySelector<HTMLSelectElement>("#filtroAniversario");
+  if (selectAniversario) selectAniversario.value = "";
   renderizarAgenda();
 });
 
@@ -631,14 +854,17 @@ function filtrarEstoque(): ItemEstoque[] {
     document.querySelector<HTMLInputElement>("#filtroCategoria")?.value.trim().toLowerCase() || "";
   const filtroSituacao =
     document.querySelector<HTMLSelectElement>("#filtroSituacaoEstoque")?.value || "";
+  const filtroVencimento =
+    document.querySelector<HTMLInputElement>("#filtroVencimento")?.value.trim().toLowerCase() || "";
 
-  const temFiltro = Boolean(filtroProduto || filtroMarca || filtroCategoria || filtroSituacao);
+  const temFiltro = Boolean(filtroProduto || filtroMarca || filtroCategoria || filtroSituacao || filtroVencimento);
   if (!temFiltro) return produtosEstoqueCache;
 
   return produtosEstoqueCache.filter((item) => {
     const produto = (item.produto || "").toLowerCase();
     const marca = (item.marca || "").toLowerCase();
     const categoria = (item.categoria || "").toLowerCase();
+    const vencimento = formatarVencimento(item.vencimento).toLowerCase();
     const quantidadeNumero =
       Number(String(item.quantidade).replace(/[^\d,-]/g, "")) || 0;
 
@@ -648,8 +874,10 @@ function filtrarEstoque(): ItemEstoque[] {
     const okSituacao =
       !filtroSituacao ||
       (filtroSituacao === "zerado" ? quantidadeNumero <= 0 : quantidadeNumero > 0);
+    const okVencimento =
+      !filtroVencimento || vencimento.includes(filtroVencimento);
 
-    return okProduto && okMarca && okCategoria && okSituacao;
+    return okProduto && okMarca && okCategoria && okSituacao && okVencimento;
   });
 }
 
@@ -660,6 +888,12 @@ function filtrarEstoque(): ItemEstoque[] {
 });
 
 document
+  .querySelector<HTMLInputElement>("#filtroVencimento")
+  ?.addEventListener("input", () => {
+    renderizarEstoque();
+  });
+
+document
   .querySelector<HTMLSelectElement>("#filtroSituacaoEstoque")
   ?.addEventListener("change", () => {
     renderizarEstoque();
@@ -668,7 +902,7 @@ document
 document
   .querySelector<HTMLButtonElement>("#botaoLimparFiltrosEstoque")
   ?.addEventListener("click", () => {
-    ["filtroProduto", "filtroMarca", "filtroCategoria"].forEach((id) => {
+    ["filtroProduto", "filtroMarca", "filtroCategoria", "filtroVencimento"].forEach((id) => {
       const campo = document.querySelector<HTMLInputElement>(`#${id}`);
       if (campo) campo.value = "";
     });
@@ -737,9 +971,17 @@ function renderizarAgenda(): void {
     const linha = document.createElement("tr");
     linha.innerHTML = `
       <td>${escaparTexto(agendamento.data)}</td>
-      <td>${escaparTexto(agendamento.dono)}</td>
+      <td class="celula-foto-animal">
+        ${
+          agendamento.imagem
+            ? `<img src="${escaparTexto(agendamento.imagem)}" alt="Foto do animal" class="foto-animal-tabela">`
+            : ""
+        }
+        <span>${escaparTexto(agendamento.dono)}</span>
+      </td>
       <td>${escaparTexto(agendamento.endereco)}</td>
       <td>${escaparTexto(agendamento.transporte)}</td>
+      <td>${escaparTexto(formatarAniversario(agendamento.aniversario))}</td>
       <td>${escaparTexto(agendamento.cell)}</td>
       <td>${escaparTexto(agendamento.servico)}</td>
       <td class="celula-observacao">${escaparTexto(observacoesDoServico(agendamento.servico))}</td>
@@ -1039,6 +1281,7 @@ function renderizarEstoque(produtos: ItemEstoque[] | null = null): void {
       <td>${formatarValorPlanilha(item.preco)}</td>
       <td>${formatarValorPlanilha(item.desconto)}</td>
       <td>${escaparTexto(String(item.percentual))}</td>
+      <td>${escaparTexto(formatarVencimento(item.vencimento))}</td>
       <td class="coluna-acoes">
         <button type="button" class="botao-editar-estoque" data-linha="${item.linha}">Editar</button>
         <button type="button" class="botao-apagar-estoque" data-linha="${item.linha}">Apagar</button>
@@ -1058,7 +1301,25 @@ async function carregarEstoque(): Promise<void> {
       throw new Error(erroDados.erro || erroDados.error || "Falha ao carregar estoque.");
     }
 
-    const produtos: ItemEstoque[] = await resposta.json();
+    const respostaDados = await resposta.json();
+
+    // Garante que o campo vencimento exista mesmo se a planilha
+    // ainda não tiver a coluna preenchida
+    const produtos: ItemEstoque[] = (
+      Array.isArray(respostaDados) ? respostaDados : respostaDados.produtos || []
+    ).map((item: any) => ({
+      linha: Number(item?.linha) || 0,
+      produto: String(item?.produto ?? ""),
+      marca: String(item?.marca ?? ""),
+      categoria: String(item?.categoria ?? ""),
+      quantidade: String(item?.quantidade ?? ""),
+      preco: String(item?.preco ?? ""),
+      desconto: String(item?.desconto ?? ""),
+      percentual: String(item?.percentual ?? ""),
+      imagem: String(item?.imagem ?? ""),
+      vencimento: String(item?.vencimento ?? ""),
+    }));
+
     renderizarEstoque(produtos);
   } catch (erro: any) {
     renderizarEstoque([]);
@@ -1106,6 +1367,14 @@ listaEstoque.addEventListener("click", async (evento) => {
     (formNovoEstoque.elements.namedItem("desconto") as HTMLInputElement).value = String(item.desconto);
     (formNovoEstoque.elements.namedItem("percentual") as HTMLInputElement).value = String(item.percentual);
     (formNovoEstoque.elements.namedItem("imagem") as HTMLInputElement).value = item.imagem;
+
+    const campoVencimento = formNovoEstoque.elements.namedItem(
+      "vencimento"
+    ) as HTMLInputElement | null;
+    if (campoVencimento) {
+      campoVencimento.value = vencimentoParaInput(item.vencimento);
+    }
+
     modalNovoEstoque.classList.add("aberto");
   }
 });
@@ -1127,6 +1396,7 @@ formNovoEstoque.addEventListener("submit", async (evento) => {
     desconto: String(dados.get("desconto") || ""),
     percentual: String(dados.get("percentual") || ""),
     imagem: String(dados.get("imagem") || ""),
+    vencimento: String(dados.get("vencimento") || ""),
   };
 
   botaoSalvarEstoque.disabled = true;
@@ -1218,7 +1488,7 @@ function renderizarServicos(): void {
     tdPreco.textContent = formatarValorPlanilha(servico.preco);
     tr.appendChild(tdPreco);
 
-    // Imagem vindaa da coluna D da planilha (URL)
+    // Imagem vinda da coluna D da planilha (URL)
     const tdImagem = document.createElement("td");
 
     if (servico.imagem) {
@@ -1586,6 +1856,7 @@ botaoAdicionar.addEventListener("click", () => {
     editandoLinha = null;
     formNovoAgendamento.reset();
     preencherSelectServicos();
+    limparImagemAnimal();
 
     const titulo = modalNovo.querySelector("h3");
     if (titulo) titulo.textContent = "Novo Agendamento";
@@ -1612,6 +1883,7 @@ botaoAdicionar.addEventListener("click", () => {
 fecharModalNovo.addEventListener("click", () => {
   modalNovo.classList.remove("aberto");
   editandoLinha = null;
+  limparImagemAnimal();
 });
 
 // Submissão do agendamento (Criação e Edição na planilha)
@@ -1619,6 +1891,8 @@ formNovoAgendamento.addEventListener("submit", async (evento) => {
   evento.preventDefault();
 
   const dados = new FormData(formNovoAgendamento);
+  const botaoSalvarAgendamento =
+    formNovoAgendamento.querySelector<HTMLButtonElement>(".botao-salvar");
 
   let data = String(dados.get("data") || "");
   let horario = String(dados.get("horario") || "");
@@ -1638,13 +1912,33 @@ formNovoAgendamento.addEventListener("submit", async (evento) => {
     dono: String(dados.get("dono") || ""),
     endereco: String(dados.get("endereco") || ""),
     transporte: String(dados.get("transporte") || ""),
+    aniversario: String(dados.get("aniversario") || ""),
     cell: String(dados.get("cell") || ""),
     servico: obterServicosSelecionados().join(", "),
     horario: horario.trim(),
     valor: formatarDinheiro(valorNumerico),
+    imagem: imagemAnimalSalva,
   };
 
+  if (botaoSalvarAgendamento) {
+    botaoSalvarAgendamento.disabled = true;
+    botaoSalvarAgendamento.textContent = arquivoImagemAnimal
+      ? "Enviando foto..."
+      : "Salvando...";
+  }
+
   try {
+    // Se o usuário escolheu uma foto do dispositivo, envia
+    // primeiro para a API (que salva no Supabase e devolve o link)
+    if (arquivoImagemAnimal) {
+      const conteudo = await redimensionarImagem(arquivoImagemAnimal);
+      corpo.imagem = await enviarImagemSupabase(conteudo);
+
+      if (botaoSalvarAgendamento) {
+        botaoSalvarAgendamento.textContent = "Salvando...";
+      }
+    }
+
     const resposta = await fetch("/api/agendamentos", {
       method: editandoLinha ? "PATCH" : "POST",
       headers: { "Content-Type": "application/json" },
@@ -1660,10 +1954,16 @@ formNovoAgendamento.addEventListener("submit", async (evento) => {
 
     editandoLinha = null;
     formNovoAgendamento.reset();
+    limparImagemAnimal();
     modalNovo.classList.remove("aberto");
     await carregarAgendamentos();
   } catch (erro: any) {
     alert("Falha ao salvar agendamento: " + erro.message);
+  } finally {
+    if (botaoSalvarAgendamento) {
+      botaoSalvarAgendamento.disabled = false;
+      botaoSalvarAgendamento.textContent = "Salvar";
+    }
   }
 });
 
@@ -1715,6 +2015,12 @@ listaAgendamentos.addEventListener("click", async (evento) => {
     ) as HTMLInputElement | null;
     if (campoTransporte) campoTransporte.value = agendamento.transporte || "";
 
+    const campoAniversario = formNovoAgendamento.elements.namedItem(
+      "aniversario"
+    ) as HTMLInputElement | null;
+    if (campoAniversario)
+      campoAniversario.value = aniversarioParaInput(agendamento.aniversario);
+
     const campoCell = formNovoAgendamento.elements.namedItem(
       "cell"
     ) as HTMLInputElement | null;
@@ -1722,6 +2028,9 @@ listaAgendamentos.addEventListener("click", async (evento) => {
 
     // Marca as caixinhas dos serviços salvos neste agendamento
     preencherSelectServicos(agendamento.servico);
+
+    // Mostra a foto já salva (se houver) e permite trocar
+    mostrarImagemSalvaAnimal(agendamento.imagem);
 
     const campoHorario = formNovoAgendamento.elements.namedItem(
       "horario"
@@ -1914,6 +2223,73 @@ function observacoesDoServico(textoServico: string): string {
 
   return observacoes.join(", ");
 }
+
+// ==========================================
+// AVISO 10 MINUTOS ANTES DO AGENDAMENTO
+// ==========================================
+// Nome do tópico criado no app ntfy (use um nome difícil, é a sua "senha")
+const TOPICO_NTFY = "petshop-lm-aviso-x7q82";
+
+async function avisarWhatsApp(texto: string) {
+  if (!TOPICO_NTFY) return;
+
+  try {
+    await fetch("https://ntfy.sh/" + TOPICO_NTFY, {
+      method: "POST",
+      body: texto,
+      headers: {
+        "Title": "Pet Shop L&M",
+        "Priority": "high",
+        "Tags": "dog",
+      },
+    });
+  } catch (erro) {
+    console.error("Falha ao enviar notificação:", erro);
+  }
+}
+
+function minutosAteAgendamento(
+  dataTexto: string,
+  horario: string
+): number | null {
+  const dataFormatada = formatarDataOferta(dataTexto); // dd/MM/yyyy
+  const partes = dataFormatada.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  const partesHorario = String(horario || "").match(/^(\d{1,2}):(\d{2})/);
+  if (!partes || !partesHorario) return null;
+
+  const alvo = new Date(
+    Number(partes[3]),
+    Number(partes[2]) - 1,
+    Number(partes[1]),
+    Number(partesHorario[1]),
+    Number(partesHorario[2]),
+    0
+  );
+  return Math.round((alvo.getTime() - Date.now()) / 60000);
+}
+
+const agendamentosNotificados = new Set<string>();
+
+function verificarAgendamentosProximos(): void {
+  agendamentosCache.forEach((agendamento) => {
+    const minutos = minutosAteAgendamento(
+      agendamento.data,
+      agendamento.horario
+    );
+    if (minutos === null || minutos < 0 || minutos > 10) return;
+
+    const chave = `${agendamento.linha}-${agendamento.data}-${agendamento.horario}`;
+    if (agendamentosNotificados.has(chave)) return;
+    agendamentosNotificados.add(chave);
+
+    void avisarWhatsApp(
+      `⏰ Faltam ${minutos} minuto(s) para o agendamento de ${agendamento.dono} às ${agendamento.horario}!`
+    );
+  });
+}
+
+// Confere a cada 30 segundos se falta pouco para algum agendamento
+setInterval(verificarAgendamentosProximos, 30000);
 
 // Carrega os serviços ao abrir o painel e atualiza a tabela da Agenda
 carregarObservacoesServicos().then(() => {

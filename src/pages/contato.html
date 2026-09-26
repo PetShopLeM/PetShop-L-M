@@ -3,33 +3,154 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contato - Pet Shop L&M</title>
+  <title>Contatos - Pet Shop L&M</title>
   <link rel="stylesheet" href="../style.css" />
 </head>
-<body>
+
+<body class="pagina-contato">
   <header class="cabecalho">
-    <h1 class="logo">
-  <img src="../assets/logo.png" alt="Logo do Pet Shop L&M">
-  <span>Pet Shop L&M</span>
-</h1>
-    <nav>
-      <a href="index.html">Início</a>
+    <a href="../index.html" class="logo-link" aria-label="Voltar ao início">
+      <h1 class="logo">
+        <img src="../assets/logo.png" alt="Logo do Pet Shop L&M">
+        <span>Pet Shop L&M</span>
+      </h1>
+    </a>
+
+    <nav class="menu-site">
+      <a href="../index.html">Início</a>
+      <!-- ✏️ Ajuste o link abaixo se a página de serviços tiver outro nome -->
       <a href="servicos.html">Serviços</a>
-      <a href="contato.html">Contato</a>
+      <a href="contato.html" class="ativo">Contato</a>
     </nav>
   </header>
 
-  <main>
-    <section class="secao">
-      <h2>Contatos</h2>
-      <p> </p>
+  <main class="contato-main">
+    <!-- ABERTURA -->
+    <section class="contato-hero">
+      <h2>Contatos 🐾</h2>
+      <p>
+        Fale com a Pet Shop L&M! Estamos prontos para cuidar do seu
+        melhor amigo com carinho. 🐶🐱
+      </p>
     </section>
+
+    <!-- CARTÕES DE CONTATO -->
+    <section class="contato-cartoes">
+      <a class="contato-cartao" href="https://wa.me/5511970264824" target="_blank" rel="noopener noreferrer">
+        <span class="contato-icone">💬</span>
+        <h3>WhatsApp</h3>
+        <p>(11) 97026-4824</p>
+      </a>
+
+      <a class="contato-cartao" href="tel:+5511970264824">
+        <span class="contato-icone">☎️</span>
+        <h3>Telefone</h3>
+        <p>(11) 97026-4824</p>
+      </a>
+
+      <!-- ✏️ TROQUE pelo e-mail de vocês -->
+      <a class="contato-cartao" href="mailto:contato@petshoplm.com.br">
+        <span class="contato-icone">📧</span>
+        <h3>E-mail</h3>
+        <p>contato@petshoplm.com.br</p>
+      </a>
+
+      <!-- ✏️ TROQUE pelo endereço real -->
+      <a
+  class="contato-cartao"
+  href="https://www.google.com/maps/place/Rua+Gagliano+Netto,+136+-+Jardim+Soraia,+S%C3%A3o+Paulo+-+SP,+05872-080"
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  <span class="contato-icone">📍</span>
+  <h3>Endereço</h3>
+  <p>
+    Rua Gagliano Netto, 136<br />
+    Jardim Soraia - São Paulo/SP<br />
+    CEP: 05872-080
+  </p>
+</a>
+
+      <!-- ✏️ TROQUE pelo @ de vocês -->
+      <a class="contato-cartao" href="https://www.instagram.com/pet.l.e.m.familiafeliz/" target="_blank" rel="noopener noreferrer">
+        <span class="contato-icone">📸</span>
+        <h3>Instagram</h3>
+        <p>@L&M pet família feliz</p>
+      </a>
+
+      <!-- ✏️ AJUSTE os horários de funcionamento -->
+      <div class="contato-cartao">
+        <span class="contato-icone">🕗</span>
+        <h3>Horários</h3>
+        <p>Seg a Sex: 09:00h às 18:00h<br />Sábado: 09:30h às 15:00h<br />Domingo: Fechado</p>
+      </div>
+    </section>
+
+    <!-- FORMULÁRIO DE MENSAGEM -->
+    <section class="contato-formulario">
+      <h2>Mande uma mensagem 🐾</h2>
+      <p>Preencha os campos abaixo e a mensagem abre direto no nosso WhatsApp.</p>
+
+      <form id="formContato">
+        <label for="contatoNome">Seu nome:</label>
+        <input type="text" id="contatoNome" name="nome" required />
+
+        <label for="contatoAnimal">Nome do animal:</label>
+        <input type="text" id="contatoAnimal" name="animal" />
+
+        <label for="contatoTelefone">Telefone para contato:</label>
+        <input type="tel" id="contatoTelefone" name="telefone" placeholder="(00) 00000-0000" />
+
+        <label for="contatoAssunto">Assunto:</label>
+        <select id="contatoAssunto" name="assunto">
+          <option value="Dúvidas">Dúvidas</option>
+          <option value="Outros">Outros</option>
+        </select>
+
+        <label for="contatoMensagem">Mensagem:</label>
+        <textarea id="contatoMensagem" name="mensagem" rows="4" required
+          placeholder="Escreva sua mensagem aqui..."></textarea>
+
+        <button type="submit" class="contato-botao">Enviar pelo WhatsApp 🐾</button>
+      </form>
+    </section>
+
+    <!-- MAPA -->
+    <section class="contato-mapa">
+  <h2>Onde estamos 📍</h2>
+
+  <iframe
+    src="https://www.google.com/maps?q=Rua+Gagliano+Netto,+136+-+Jardim+Soraia,+São+Paulo+-+SP,+05872-080&output=embed"
+    title="Localização do Pet Shop L&M"
+    loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade"
+  ></iframe>
+</section>
   </main>
 
   <footer class="rodape">
     <p>© 2026 - Pet Shop L&M</p>
   </footer>
 
-  <script type="module" src="../main.ts"></script>
+  <script>
+    // Envia a mensagem do formulário direto para o WhatsApp da loja
+    const formContato = document.querySelector("#formContato");
+
+    formContato.addEventListener("submit", (evento) => {
+      evento.preventDefault();
+
+      const dados = new FormData(formContato);
+
+      const texto =
+        "Olá! Sou " + (dados.get("nome") || "") +
+        (dados.get("animal") ? ", dono(a) do(a) " + dados.get("animal") : "") + ".\n" +
+        "Assunto: " + (dados.get("assunto") || "") + ".\n" +
+        (dados.get("telefone") ? "Meu telefone: " + dados.get("telefone") + ".\n" : "") +
+        "Mensagem: " + (dados.get("mensagem") || "");
+
+      const url = "https://wa.me/5511970264824?text=" + encodeURIComponent(texto);
+      window.open(url, "_blank");
+    });
+  </script>
 </body>
 </html>

@@ -112,7 +112,7 @@ module.exports = async (req, res) => {
 
     // ================= GET (LER - colunas A:H) =================
     if (req.method === "GET") {
-      const url = `${base}/values/${codificarRange(`${aba}!A:H`)}?majorDimension=ROWS`;
+      const url = `${base}/values/${codificarRange(`${aba}!A:I`)}?majorDimension=ROWS`;
       const dados = await chamarSheets(token, url);
       const linhas = dados.values || [];
 
@@ -121,7 +121,7 @@ module.exports = async (req, res) => {
         const vazia = linhas[i].every((c) => !String(c || "").trim());
         if (vazia) continue;
 
-        const [data, dono, endereco, cell, servico, horario, valor, transporte] = linhas[i];
+        const [data, dono, endereco, cell, servico, horario, valor, transporte, aniversario] = linhas[i];
         agendamentos.push({
           linha: i + 1,
           data: data || "",
@@ -132,6 +132,7 @@ module.exports = async (req, res) => {
           horario: horario || "",
           valor: valor || "",
           transporte: transporte || "",
+          aniversario: aniversario || "",
         });
       }
 
@@ -151,6 +152,7 @@ module.exports = async (req, res) => {
         String(b.horario || ""),
         String(b.valor || ""),
         String(b.transporte || ""),
+        String(b.aniversario || ""),
       ]];
 
       const url =
@@ -181,6 +183,7 @@ module.exports = async (req, res) => {
         String(b.horario || ""),
         String(b.valor || ""),
         String(b.transporte || ""),
+        String(b.aniversario || ""),
       ]];
 
       const url = `${base}/values/${codificarRange(

@@ -84,19 +84,38 @@
         <input type="date" id="data" name="data" required>
 
         <label for="Dono(a)">Nomes: Dono(a) e Animal:</label>
-        <input type="text" id="Dono(a)" name="Dono(a)" placeholder="Nome do dono" required>
+        <input type="text" id="Dono(a)" name="Dono(a)" placeholder="Ex: Ale - Buck" required>
+
+        <label for="imagemAnimal">Foto do animal:</label>
+        <input type="file" id="imagemAnimal" name="imagemAnimal" accept="image/*" />
+
+        <img
+          id="previewImagemAnimal"
+          alt="Prévia da foto do animal"
+          style="
+            display: none;
+            width: 140px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin: 8px 0;
+          "
+        />
 
         <label for="endereco">Endereço:</label>
         <input type="text" id="endereco" name="endereco" placeholder="Rua, número e bairro" required>
 
+        <label for="aniversario">Aniversário do animal:</label>
+        <input type="date" id="aniversario" name="aniversario" />
+
         <label for="transporte">Transporte:</label>
         <select id="transporte" name="transporte" required>
           <option value="Não - o cliente leva e busca o animal">
-            Não - o cliente leva e busca o animal
+            Não - O cliente leva e busca o animal
           </option>
           <option value="Sim - buscar o animal">Sim - (Apenas buscar)</option>
           <option value="Sim - levar o animal">Sim - (Apenas levar)</option>
-          <option value="Sim - buscar e levar o animal">Sim - buscar e levar o animal</option>
+          <option value="Sim - buscar e levar o animal">Sim - Buscar e levar o animal</option>
         </select>
 
         <label for="cell">Cell:</label>
@@ -104,21 +123,21 @@
 
         <label>Serviço(s):</label>
 
-        <button
-          id="botaoMostrarServicos"
-          class="botao-mostrar-servicos"
-          type="button"
-        >
-          Mostrar serviços
-        </button>
+        <div class="botoes-tipos-servico">
+  <button type="button" id="botaoBanho" class="botao-tipo-servico">
+    Banho
+  </button>
 
-        <div
-          id="listaServicosAgendamento"
-          class="lista-servicos-agendamento"
-          style="display: none;"
-        >
-          <p>Carregando serviços...</p>
-        </div>
+  <button type="button" id="botaoTosa" class="botao-tipo-servico">
+    Tosa
+  </button>
+
+  <button type="button" id="botaoOutrosServicos" class="botao-tipo-servico">
+    Outros serviços
+  </button>
+</div>
+
+<div id="listaServicosAgendamento" class="lista-servicos-agendamento"></div>
 
         <label for="horario">Horário:</label>
         <input type="time" id="horario" name="horario" required>

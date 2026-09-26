@@ -1,27 +1,11 @@
 require("dotenv").config({ path: ".env.local" });
 
-// Recebe a imagem do painel e salva no Supabase Storage,
-// devolvendo o link público para gravar na coluna Imagem.
+// Credenciais do Supabase (Painel -> Settings -> API)
+const SUPABASE_URL = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || "";
+const SUPABASE_BUCKET = process.env.SUPABASE_BUCKET || "fotos-petshop";
 
-function converterEmBuffer(dataUrl) {
-  const texto = String(dataUrl || "");
-  const match = texto.match(/^data:image\/([a-zA-Z0-9.+-]+);base64,(.+)$/);
-
-  if (!match) {
-    throw new Error("Formato de imagem invalido.");
-  }
-
-  const tipo = `image/${match[1]}`;
-  const buffer = Buffer.from(match[2], "base64");
-
-  if (!buffer.length) {
-    throw new Error("Imagem vazia.");
-  }
-
-  return { tipo, buffer };
-}
-
-module.exports = async (req, res) => {
+module.exports = async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -32,51 +16,65 @@ module.exports = async (req, res) => {
   }
 
   if (req.method !== "POST") {
-    res.status(405).json({ erro: "Metodo nao permitido." });
-    return;
+    return res.status(405).json({ erro: "Metodo nao permitido." });
   }
 
   try {
-    const SUPABASE_URL = (process.env.SUPABASE_URL || "").replace(/\/$/, "");
-    const SUPABASE_CHAVE = process.env.SUPABASE_CHAVE || "";
-
-    if (!SUPABASE_URL || !SUPABASE_CHAVE) {
-      throw new Error("Variaveis SUPABASE_URL / SUPABASE_CHAVE nao configuradas no .env.local.");
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+      return res.status(500).json({
+        erro:
+          "Configure SUPABASE_URL e SUPABASE_SERVICE_KEY no arquivo .env.local.",
+      });
     }
 
     const corpo =
-      typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
+      typeof req.body === "string"
+        ? JSON.parse(req.body || "{}")
+        : req.body || {};
 
-    const { tipo, buffer } = converterEmBuffer(corpo.imagem);
+    // Espera uma imagem no formato "data:image/jpeg;base64,..."
+    const combinacao = String(corpo.imagem || "").match(
+      /^data:image\/([a-zA-Z0-9+.-]+);base64,(.+)$/
+    );
 
-    if (buffer.length > 4 * 1024 * 1024) {
-      throw new Error("Imagem muito grande. Tente uma foto menor.");
+    if (!combinacao) {
+      return res.status(400).json({ erro: "Imagem invalida." });
     }
 
-    const nomeArquivo = `servico-${Date.now()}.${tipo === "image/png" ? "png" : "jpg"}`;
+    const extensao = combinacao[1] === "jpeg" ? "jpg" : combinacao[1];
+    const conteudo = Buffer.from(combinacao[2], "base64");
 
+    // Nome único para nunca sobrescrever imagens antigas
+    const nomeArquivo = `imagens/${Date.now()}-${Math.round(
+      Math.random() * 1000000000
+    )}.${extensao}`;
+
+    // Envia para o Supabase Storage
     const resposta = await fetch(
-      `${SUPABASE_URL}/storage/v1/object/imagens/${nomeArquivo}`,
+      `${SUPABASE_URL}/storage/v1/object/${SUPABASE_BUCKET}/${nomeArquivo}`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${SUPABASE_CHAVE}`,
-          "Content-Type": tipo,
+          Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+          "Content-Type": `image/${combinacao[1]}`,
+          "x-upsert": "true",
         },
-        body: buffer,
+        body: conteudo,
       }
     );
 
-    const dados = await resposta.json().catch(() => ({}));
     if (!resposta.ok) {
-      throw new Error(dados?.message || `Falha ao salvar imagem (${resposta.status}).`);
+      const texto = await resposta.text();
+      throw new Error(
+        `Supabase respondeu ${resposta.status}: ${texto.slice(0, 150)}`
+      );
     }
 
-    res.status(200).json({
-      ok: true,
-      url: `${SUPABASE_URL}/storage/v1/object/public/imagens/${nomeArquivo}`,
-    });
+    // Link público da imagem
+    const url = `${SUPABASE_URL}/storage/v1/object/public/${SUPABASE_BUCKET}/${nomeArquivo}`;
+
+    return res.status(200).json({ ok: true, url });
   } catch (erro) {
-    res.status(500).json({ erro: erro.message || "Erro inesperado." });
+    return res.status(500).json({ erro: String(erro?.message || erro) });
   }
 };
