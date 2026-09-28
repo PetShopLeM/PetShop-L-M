@@ -164,8 +164,6 @@ function limparImagemAnimal(): void {
   mostrarImagemSalvaAnimal("");
 }
 
-// Envia a foto para a API, que salva no Supabase Storage
-// e devolve o link público para gravar no agendamento
 // Envia a foto para a API (api/upload-imagem.js), que salva no
 // Supabase Storage e devolve o link público para gravar no agendamento
 async function enviarImagemSupabase(conteudo: Blob): Promise<string> {
@@ -191,31 +189,35 @@ async function enviarImagemSupabase(conteudo: Blob): Promise<string> {
 }
 
 // Prévia assim que o usuário escolhe o arquivo
-campoImagemAnimal?.addEventListener("change", () => {
-  const arquivo = campoImagemAnimal.files?.[0] || null;
-  arquivoImagemAnimal = arquivo;
+if (campoImagemAnimal) {
+  const campo = campoImagemAnimal;
 
-  if (!previewImagemAnimal) return;
+  campo.addEventListener("change", () => {
+    const arquivo = campo.files?.[0] || null;
+    arquivoImagemAnimal = arquivo;
 
-  if (!arquivo) {
-    if (imagemAnimalSalva) {
-      previewImagemAnimal.src = imagemAnimalSalva;
-      previewImagemAnimal.style.display = "";
-    } else {
-      previewImagemAnimal.src = "";
-      previewImagemAnimal.style.display = "none";
-    }
-    return;
-  }
-
-  const leitor = new FileReader();
-  leitor.onload = () => {
     if (!previewImagemAnimal) return;
-    previewImagemAnimal.src = String(leitor.result);
-    previewImagemAnimal.style.display = "";
-  };
-  leitor.readAsDataURL(arquivo);
-});
+
+    if (!arquivo) {
+      if (imagemAnimalSalva) {
+        previewImagemAnimal.src = imagemAnimalSalva;
+        previewImagemAnimal.style.display = "";
+      } else {
+        previewImagemAnimal.src = "";
+        previewImagemAnimal.style.display = "none";
+      }
+      return;
+    }
+
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      if (!previewImagemAnimal) return;
+      previewImagemAnimal.src = String(leitor.result);
+      previewImagemAnimal.style.display = "";
+    };
+    leitor.readAsDataURL(arquivo);
+  });
+}
 
 // ==========================================
 // MODAL DE ESTOQUE (GOOGLE SHEETS)
@@ -986,7 +988,7 @@ function renderizarAgenda(): void {
       <td>${escaparTexto(agendamento.servico)}</td>
       <td class="celula-observacao">${escaparTexto(observacoesDoServico(agendamento.servico))}</td>
       <td>${escaparTexto(agendamento.horario)}</td>
-      <td>${agendamento.valor.trim() ? formatarDinheiro(agendamento.valor) : ""}</td>
+      <td>${(agendamento.valor || "").trim() ? formatarDinheiro(agendamento.valor) : ""}</td>
       <td class="coluna-acoes">
         <button type="button" class="botao-editar" data-linha="${agendamento.linha}">Editar</button>
         <button type="button" class="botao-apagar" data-linha="${agendamento.linha}">Apagar</button>
@@ -998,7 +1000,32 @@ function renderizarAgenda(): void {
 // ==========================================
 // SERVIÇOS DO AGENDAMENTO (MÚLTIPLA ESCOLHA)
 // ==========================================
-function preencherSelectServicos(valorSelecionado: string = ""): void {
+type CategoriaServico = "banho" | "tosa" | "outros";
+
+const NOMES_CATEGORIA: Record<CategoriaServico, string> = {
+  banho: "Banho",
+  tosa: "Tosa",
+  outros: "Outros serviços",
+};
+
+// Botões de categoria (só funcionam se existirem no admin.html)
+const botaoBanho = document.querySelector<HTMLButtonElement>("#botaoBanho");
+const botaoTosa = document.querySelector<HTMLButtonElement>("#botaoTosa");
+const botaoOutrosServicos = document.querySelector<HTMLButtonElement>(
+  "#botaoOutrosServicos"
+);
+
+function categorizarServico(nome: string): CategoriaServico {
+  const nomeLimpo = normalizarNomeServico(nome);
+  if (nomeLimpo.includes("banho")) return "banho";
+  if (nomeLimpo.includes("tosa")) return "tosa";
+  return "outros";
+}
+
+function preencherSelectServicos(
+  valorSelecionado: string = "",
+  categoria: CategoriaServico | null = null
+): void {
   const container = document.querySelector<HTMLDivElement>(
     "#listaServicosAgendamento"
   );
@@ -1020,11 +1047,41 @@ function preencherSelectServicos(valorSelecionado: string = ""): void {
     .map((servico) => servico.trim().toLowerCase())
     .filter(Boolean);
 
-  servicosCache.forEach((servico) => {
+  const servicosVisiveis = categoria
+    ? servicosCache.filter(
+        (servico) => categorizarServico(String(servico.nome || "")) === categoria
+      )
+    : servicosCache;
+
+  if (servicosVisiveis.length === 0) {
+    container.innerHTML =
+      '<p class="sem-servicos">Nenhum serviço nesta categoria</p>';
+    return;
+  }
+
+  // Quando um filtro está ativo, avisa e oferece ver todos
+  if (categoria) {
+    const aviso = document.createElement("p");
+    aviso.className = "aviso-filtro-servicos";
+    aviso.textContent = `Mostrando apenas: ${NOMES_CATEGORIA[categoria]}`;
+    container.appendChild(aviso);
+
+    const botaoTodos = document.createElement("button");
+    botaoTodos.type = "button";
+    botaoTodos.className = "botao-ver-todos-servicos";
+    botaoTodos.textContent = "Ver todos os serviços";
+    botaoTodos.addEventListener("click", () => {
+      abrirListaServicosFiltrada(null);
+    });
+    container.appendChild(botaoTodos);
+  }
+
+  servicosVisiveis.forEach((servico) => {
     const nome = String(servico.nome || "").trim();
     if (!nome) return;
 
     const observacao = String(servico.descricao || "").trim();
+    const preco = formatarValorPlanilha(servico.preco);
 
     const rotulo = document.createElement("label");
     rotulo.className = "item-servico-agendamento";
@@ -1042,9 +1099,11 @@ function preencherSelectServicos(valorSelecionado: string = ""): void {
 
     rotulo.appendChild(checkbox);
 
-    // Exibe "Banho (Com Hidratação)" quando há observação
-    const textoExibido = observacao ? `${nome} (${observacao})` : nome;
-    rotulo.appendChild(document.createTextNode(textoExibido));
+    // Exibe "Banho (Com Hidratação) - R$ 50,00"
+    const partesTexto = [nome];
+    if (observacao) partesTexto.push(`(${observacao})`);
+    if (preco) partesTexto.push(`- ${preco}`);
+    rotulo.appendChild(document.createTextNode(partesTexto.join(" ")));
 
     container.appendChild(rotulo);
   });
@@ -1058,16 +1117,82 @@ function obterServicosSelecionados(): string[] {
   ).map((checkbox) => checkbox.value);
 }
 
-// Botão mostrar/ocultar serviços
-botaoMostrarServicos?.addEventListener("click", () => {
+// ==========================================
+// ABERTURA / FILTRO DA LISTA DE SERVIÇOS
+// ==========================================
+function marcarBotaoCategoriaAtivo(categoria: CategoriaServico | null): void {
+  const pares: Array<[CategoriaServico, HTMLButtonElement | null]> = [
+    ["banho", botaoBanho],
+    ["tosa", botaoTosa],
+    ["outros", botaoOutrosServicos],
+  ];
+
+  pares.forEach(([categoriaItem, botao]) => {
+    if (!botao) return;
+    botao.classList.toggle("ativa", categoriaItem === categoria);
+  });
+}
+
+function fecharListaServicos(): void {
   if (!listaServicosAgendamento) return;
 
-  const abriu = listaServicosAgendamento.classList.toggle("aberto");
+  listaServicosAgendamento.classList.remove("aberto");
+  listaServicosAgendamento.style.display = "none";
 
-  botaoMostrarServicos.textContent = abriu
-    ? "Ocultar serviços"
-    : "Mostrar serviços";
-});
+  if (botaoMostrarServicos) {
+    botaoMostrarServicos.textContent = "Mostrar serviços";
+  }
+
+  marcarBotaoCategoriaAtivo(null);
+}
+
+function abrirListaServicosFiltrada(categoria: CategoriaServico | null): void {
+  if (!listaServicosAgendamento) return;
+
+  // Preserva o que o usuário já marcou antes de trocar o filtro
+  const jaMarcados = obterServicosSelecionados().join(", ");
+
+  preencherSelectServicos(jaMarcados, categoria);
+
+  listaServicosAgendamento.classList.add("aberto");
+  listaServicosAgendamento.style.display = "block";
+
+  if (botaoMostrarServicos) {
+    botaoMostrarServicos.textContent = "Ocultar serviços";
+  }
+
+  marcarBotaoCategoriaAtivo(categoria);
+}
+
+// Botão mostrar/ocultar serviços
+if (botaoMostrarServicos) {
+  const botao = botaoMostrarServicos;
+
+  botao.addEventListener("click", () => {
+    if (!listaServicosAgendamento) return;
+
+    const estaAberta =
+      listaServicosAgendamento.classList.contains("aberto") &&
+      listaServicosAgendamento.style.display !== "none";
+
+    if (estaAberta) {
+      fecharListaServicos();
+      return;
+    }
+
+    listaServicosAgendamento.classList.add("aberto");
+    listaServicosAgendamento.style.display = "block";
+    botao.textContent = "Ocultar serviços";
+    marcarBotaoCategoriaAtivo(null);
+  });
+}
+
+// Botões de categoria (Banho / Tosa / Outros serviços)
+botaoBanho?.addEventListener("click", () => abrirListaServicosFiltrada("banho"));
+botaoTosa?.addEventListener("click", () => abrirListaServicosFiltrada("tosa"));
+botaoOutrosServicos?.addEventListener("click", () =>
+  abrirListaServicosFiltrada("outros")
+);
 
 // ==========================================
 // AUTOCOMPLETE DA OFERTA (IMAGEM + NOME)
@@ -1599,8 +1724,8 @@ async function redimensionarImagem(arquivo: File): Promise<Blob> {
   });
 }
 
-// Envia a imagem para a API, que salva no Google Drive
-// e devolve o link público para gravar na planilha
+// Envia a imagem para a API (api/upload-imagem.js), que salva no
+// Supabase Storage e devolve o link público para gravar na planilha
 async function enviarImagemServico(conteudo: Blob): Promise<string> {
   const base64 = await new Promise<string>((resolve, reject) => {
     const leitor = new FileReader();
@@ -1624,33 +1749,37 @@ async function enviarImagemServico(conteudo: Blob): Promise<string> {
 }
 
 // Prévia assim que o usuário escolhe o arquivo
-servicoImagemArquivo?.addEventListener("change", () => {
-  const arquivo = servicoImagemArquivo.files?.[0] || null;
-  arquivoImagemServico = arquivo;
+if (servicoImagemArquivo) {
+  const campo = servicoImagemArquivo;
 
-  if (!previewImagemServico) return;
+  campo.addEventListener("change", () => {
+    const arquivo = campo.files?.[0] || null;
+    arquivoImagemServico = arquivo;
 
-  if (!arquivo) {
-    const campoImagem = formNovoServico?.elements.namedItem(
-      "imagem"
-    ) as HTMLInputElement | null;
-    if (campoImagem?.value) {
-      previewImagemServico.src = campoImagem.value;
-      previewImagemServico.style.display = "";
-    } else {
-      limparImagemServico();
-    }
-    return;
-  }
-
-  const leitor = new FileReader();
-  leitor.onload = () => {
     if (!previewImagemServico) return;
-    previewImagemServico.src = String(leitor.result);
-    previewImagemServico.style.display = "";
-  };
-  leitor.readAsDataURL(arquivo);
-});
+
+    if (!arquivo) {
+      const campoImagem = formNovoServico?.elements.namedItem(
+        "imagem"
+      ) as HTMLInputElement | null;
+      if (campoImagem?.value) {
+        previewImagemServico.src = campoImagem.value;
+        previewImagemServico.style.display = "";
+      } else {
+        limparImagemServico();
+      }
+      return;
+    }
+
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      if (!previewImagemServico) return;
+      previewImagemServico.src = String(leitor.result);
+      previewImagemServico.style.display = "";
+    };
+    leitor.readAsDataURL(arquivo);
+  });
+}
 
 // Prévia da imagem salva ao clicar em Editar
 listaServicos?.addEventListener("click", (evento) => {
@@ -1678,7 +1807,7 @@ formNovoServico?.addEventListener("submit", async (evento) => {
   evento.preventDefault();
 
   const dados = new FormData(formNovoServico);
-  const botaoSalvar = formNovoServico.querySelector<HTMLButtonElement>(".botao-salvar");
+  const botaoSalvar = formNovoServico?.querySelector<HTMLButtonElement>(".botao-salvar");
 
   const corpo = {
     linha: editandoServicoLinha ?? undefined,
@@ -1692,7 +1821,7 @@ formNovoServico?.addEventListener("submit", async (evento) => {
 
   try {
     // Se o usuário escolheu um arquivo do dispositivo, envia
-    // primeiro para a API (que salva no Drive e devolve o link)
+    // primeiro para a API (que salva no Supabase e devolve o link)
     if (arquivoImagemServico) {
       if (botaoSalvar) {
         botaoSalvar.disabled = true;
@@ -1731,7 +1860,7 @@ formNovoServico?.addEventListener("submit", async (evento) => {
     }
 
     editandoServicoLinha = null;
-    formNovoServico.reset();
+    formNovoServico?.reset();
     limparImagemServico();
     modalNovoServico?.classList.remove("aberto");
     await carregarServicos();
@@ -1857,6 +1986,7 @@ botaoAdicionar.addEventListener("click", () => {
     formNovoAgendamento.reset();
     preencherSelectServicos();
     limparImagemAnimal();
+    fecharListaServicos();
 
     const titulo = modalNovo.querySelector("h3");
     if (titulo) titulo.textContent = "Novo Agendamento";
@@ -1884,6 +2014,7 @@ fecharModalNovo.addEventListener("click", () => {
   modalNovo.classList.remove("aberto");
   editandoLinha = null;
   limparImagemAnimal();
+  fecharListaServicos();
 });
 
 // Submissão do agendamento (Criação e Edição na planilha)
@@ -1939,11 +2070,16 @@ formNovoAgendamento.addEventListener("submit", async (evento) => {
       }
     }
 
-    const resposta = await fetch("/api/agendamentos", {
-      method: editandoLinha ? "PATCH" : "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(corpo),
-    });
+    const resposta = await fetch(
+      editandoLinha
+        ? `/api/agendamentos?linha=${editandoLinha}`
+        : "/api/agendamentos",
+      {
+        method: editandoLinha ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(corpo),
+      }
+    );
 
     if (!resposta.ok) {
       const erroDados = await resposta.json().catch(() => ({}));

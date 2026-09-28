@@ -2615,6 +2615,369 @@ button:hover {
   flex-shrink: 0;
 }
 
+.botoes-categorias-servicos {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+
+.botao-categoria-servicos {
+  padding: 8px 14px;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.botao-categoria-servicos.ativa {
+  background: #4a90d9;
+  border-color: #4a90d9;
+  color: #fff;
+}
+
+.aviso-filtro-servicos {
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+.botao-ver-todos-servicos {
+  background: none;
+  border: none;
+  color: #4a90d9;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+/* =========================================
+   ADMIN — SEÇÃO AGENDA (LAYOUT MAIS BONITO)
+   ========================================= */
+
+/* --- Cartão geral da seção --- */
+.pagina-admin .secao-agenda {
+  background: #fff8ef;
+  border: 1px solid #f6e3c8;
+  border-radius: 18px;
+  padding: 24px;
+  margin: 20px auto;
+  max-width: 1200px;
+  box-shadow: 0 10px 30px rgba(230, 141, 37, 0.10);
+}
+
+.pagina-admin .secao-agenda h2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 26px;
+  color: #b35c00;
+  margin: 0 0 20px;
+}
+
+.pagina-admin .secao-agenda h2::before,
+.pagina-admin .secao-agenda h2::after {
+  content: "🐾";
+  font-size: 20px;
+}
+
+/* --- Barra de filtros --- */
+.pagina-admin .secao-agenda .filtros-agenda {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  background: #ffffff;
+  border: 1px solid #f0dcc3;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.pagina-admin .secao-agenda .campo-filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1 1 140px;
+  min-width: 130px;
+}
+
+.pagina-admin .secao-agenda .campo-filtro label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #a06a2c;
+}
+
+.pagina-admin .secao-agenda .campo-filtro input,
+.pagina-admin .secao-agenda .campo-filtro select {
+  border: 1.5px solid #ecd9bd;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 14px;
+  color: #5c4033;
+  background: #fffdf9;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pagina-admin .secao-agenda .campo-filtro input:focus,
+.pagina-admin .secao-agenda .campo-filtro select:focus {
+  border-color: #e68d25;
+  box-shadow: 0 0 0 3px rgba(230, 141, 37, 0.18);
+}
+
+.pagina-admin .secao-agenda .botao-limpar-filtros {
+  border: 1.5px solid #e68d25;
+  background: #ffffff;
+  color: #b35c00;
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+}
+
+.pagina-admin .secao-agenda .botao-limpar-filtros:hover {
+  background: #e68d25;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* --- Tabela --- */
+.pagina-admin .secao-agenda .tabela-container {
+  background: #ffffff;
+  border: 1px solid #f0dcc3;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  overflow: auto;
+  max-height: 65vh;
+}
+
+.pagina-admin .secao-agenda .tabela-agenda {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.pagina-admin .secao-agenda .tabela-agenda thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: linear-gradient(135deg, #f2a03d, #e68d25);
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 13px 14px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.pagina-admin .secao-agenda .tabela-agenda tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f6e8d5;
+  color: #5c4033;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.pagina-admin .secao-agenda .tabela-agenda tbody tr {
+  transition: background 0.15s;
+  animation: agendaEntrada 0.25s ease both;
+}
+
+.pagina-admin .secao-agenda .tabela-agenda tbody tr:nth-child(even) {
+  background: #fffaf3;
+}
+
+.pagina-admin .secao-agenda .tabela-agenda tbody tr:hover {
+  background: #fff1e0;
+}
+
+.pagina-admin .secao-agenda .tabela-agenda tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Data em destaque */
+.pagina-admin .secao-agenda .tabela-agenda tbody td:first-child {
+  font-weight: 700;
+  color: #b35c00;
+  white-space: nowrap;
+}
+
+/* Fotos dos pets */
+.pagina-admin .secao-agenda .tabela-agenda td img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #b35c00;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+/* --- Botões Editar / Apagar (vale para todas as abas) --- */
+.pagina-admin .botao-editar,
+.pagina-admin .botao-apagar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+}
+
+.pagina-admin .botao-editar {
+  background: linear-gradient(135deg, #34b06a, #2a9055);
+  margin-right: 6px;
+}
+
+.pagina-admin .botao-apagar {
+  background: linear-gradient(135deg, #ef5350, #d63b38);
+}
+
+.pagina-admin .botao-editar::before {
+  content: "✏️";
+  font-size: 12px;
+}
+
+.pagina-admin .botao-apagar::before {
+  content: "🗑️";
+  font-size: 12px;
+}
+
+.pagina-admin .botao-editar:hover,
+.pagina-admin .botao-apagar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+  filter: brightness(1.05);
+}
+
+.pagina-admin .botao-editar:active,
+.pagina-admin .botao-apagar:active {
+  transform: translateY(0);
+}
+
+.pagina-admin .secao-agenda .tabela-agenda .coluna-acoes {
+  white-space: nowrap;
+}
+
+/* --- Mensagem de agenda vazia --- */
+.pagina-admin .secao-agenda .agenda-vazia {
+  border: 2px dashed #f0c896;
+  border-radius: 14px;
+  background: #fffdf9;
+  padding: 30px;
+  color: #a06a2c;
+  font-size: 15px;
+  text-align: center;
+}
+
+/* =========================================
+   AGENDA — TABELA COMPACTA (CABE NA TELA)
+   ========================================= */
+
+/* Remove o tamanho mínimo que força a rolagem lateral */
+.pagina-admin .secao-agenda .tabela-agenda {
+  min-width: 0 !important;
+  width: 100%;
+}
+
+/* Cabeçalhos: podem quebrar linha, mais compactos e centrados */
+.pagina-admin .secao-agenda .tabela-agenda thead th {
+  white-space: normal;
+  padding: 8px 6px;
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: center;
+  vertical-align: middle;
+}
+
+/* Células: menos espaçamento, fonte menor, conteúdo centrado */
+.pagina-admin .secao-agenda .tabela-agenda tbody td {
+  padding: 8px 6px;
+  font-size: 12.5px;
+  line-height: 1.35;
+  text-align: center;
+}
+
+/* Data sem quebrar (continua destacada) */
+.pagina-admin .secao-agenda .tabela-agenda tbody td:first-child {
+  white-space: nowrap;
+  font-size: 12.5px;
+}
+
+/* Valor e Horário também não quebram no meio */
+.pagina-admin .secao-agenda .tabela-agenda tbody td:nth-child(9),
+.pagina-admin .secao-agenda .tabela-agenda tbody td:nth-child(10) {
+  white-space: nowrap;
+}
+
+/* Fotos um pouco menores para a linha ficar mais baixa */
+.pagina-admin .secao-agenda .tabela-agenda td img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  margin-right: 6px;
+}
+
+/* Botões Editar/Apagar mais compactos */
+.pagina-admin .secao-agenda .tabela-agenda .botao-editar,
+.pagina-admin .secao-agenda .tabela-agenda .botao-apagar {
+  padding: 5px 10px;
+  font-size: 11.5px;
+  margin-right: 4px;
+}
+
+@keyframes agendaEntrada {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Celular / telas pequenas --- */
+@media (max-width: 760px) {
+  .pagina-admin .secao-agenda {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .pagina-admin .secao-agenda h2 {
+    font-size: 22px;
+  }
+
+  .pagina-admin .secao-agenda .tabela-agenda tbody td {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .pagina-admin .botao-editar,
+  .pagina-admin .botao-apagar {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
 /* =========================================
    TAMANHO FINAL DAS MINIATURAS DO ESTOQUE
    Este bloco é o último: ele VENCE todas as
@@ -2657,5 +3020,300 @@ button:hover {
     border-radius: 8px !important;
     object-fit: cover !important;
     vertical-align: middle !important;
+  }
+}
+
+/* =========================================
+   ESTOQUE, OFERTAS E SERVIÇOS —
+   MESMO LAYOUT BONITO DA AGENDA
+   ========================================= */
+
+/* --- Cartão geral das seções (igual à Agenda) --- */
+.pagina-admin .secao-estoque,
+.pagina-admin .secao-ofertas,
+.pagina-admin .secao-servicos {
+  background: #fff8ef;
+  border: 1px solid #f6e3c8;
+  border-radius: 18px;
+  padding: 24px;
+  margin: 20px auto;
+  max-width: 1200px;
+  box-shadow: 0 10px 30px rgba(230, 141, 37, 0.10);
+}
+
+.pagina-admin .secao-estoque h2,
+.pagina-admin .secao-ofertas h2,
+.pagina-admin .secao-servicos h2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 26px;
+  color: #b35c00;
+  margin: 0 0 20px;
+}
+
+.pagina-admin .secao-estoque h2::before,
+.pagina-admin .secao-ofertas h2::before,
+.pagina-admin .secao-servicos h2::before,
+.pagina-admin .secao-estoque h2::after,
+.pagina-admin .secao-ofertas h2::after,
+.pagina-admin .secao-servicos h2::after {
+  content: "🐾";
+  font-size: 20px;
+}
+
+/* Subtítulo "Produtos integrados em tempo real..." */
+.pagina-admin .secao-estoque .aviso-estoque {
+  margin: 0 0 18px;
+  color: #a06a2c;
+  font-size: 14px;
+}
+
+/* --- Barra de filtros (Estoque e Ofertas usam as mesmas classes da Agenda) --- */
+.pagina-admin .secao-estoque .filtros-agenda,
+.pagina-admin .secao-estoque .filtros-estoque,
+.pagina-admin .secao-ofertas .filtros-agenda,
+.pagina-admin .secao-ofertas .filtros-ofertas {
+  background: #ffffff;
+  border: 1px solid #f0dcc3;
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.pagina-admin .secao-estoque .campo-filtro label,
+.pagina-admin .secao-ofertas .campo-filtro label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #a06a2c;
+}
+
+.pagina-admin .secao-estoque .campo-filtro input,
+.pagina-admin .secao-estoque .campo-filtro select,
+.pagina-admin .secao-ofertas .campo-filtro input,
+.pagina-admin .secao-ofertas .campo-filtro select {
+  border: 1.5px solid #ecd9bd;
+  border-radius: 10px;
+  padding: 9px 12px;
+  font-size: 14px;
+  color: #5c4033;
+  background: #fffdf9;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.pagina-admin .secao-estoque .campo-filtro input:focus,
+.pagina-admin .secao-estoque .campo-filtro select:focus,
+.pagina-admin .secao-ofertas .campo-filtro input:focus,
+.pagina-admin .secao-ofertas .campo-filtro select:focus {
+  border-color: #e68d25;
+  box-shadow: 0 0 0 3px rgba(230, 141, 37, 0.18);
+}
+
+.pagina-admin .secao-estoque .botao-limpar-filtros,
+.pagina-admin .secao-ofertas .botao-limpar-filtros {
+  border: 1.5px solid #e68d25;
+  background: #ffffff;
+  color: #b35c00;
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+}
+
+.pagina-admin .secao-estoque .botao-limpar-filtros:hover,
+.pagina-admin .secao-ofertas .botao-limpar-filtros:hover {
+  background: #e68d25;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* --- Container da tabela: cartão branco com rolagem interna --- */
+.pagina-admin .secao-estoque .tabela-container,
+.pagina-admin .secao-ofertas .tabela-container,
+.pagina-admin .secao-servicos .tabela-container {
+  background: #ffffff;
+  border: 1px solid #f0dcc3;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  overflow: auto;
+  max-height: 65vh;
+  max-width: 100%;
+}
+
+/* --- Tabelas: cabeçalho degradê fixo + linhas listradas --- */
+.pagina-admin .tabela-estoque,
+.pagina-admin .tabela-ofertas,
+.pagina-admin .tabela-servicos {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pagina-admin .tabela-estoque thead th,
+.pagina-admin .tabela-ofertas thead th,
+.pagina-admin .tabela-servicos thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: linear-gradient(135deg, #f2a03d, #e68d25);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 10px 8px;
+  text-align: center;
+  vertical-align: middle;
+  white-space: normal;
+}
+
+.pagina-admin .tabela-estoque tbody td,
+.pagina-admin .tabela-ofertas tbody td,
+.pagina-admin .tabela-servicos tbody td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #f6e8d5;
+  color: #5c4033;
+  font-size: 12.5px;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.pagina-admin .tabela-estoque tbody tr,
+.pagina-admin .tabela-ofertas tbody tr,
+.pagina-admin .tabela-servicos tbody tr {
+  transition: background 0.15s;
+  animation: agendaEntrada 0.25s ease both;
+}
+
+.pagina-admin .tabela-estoque tbody tr:nth-child(even),
+.pagina-admin .tabela-ofertas tbody tr:nth-child(even),
+.pagina-admin .tabela-servicos tbody tr:nth-child(even) {
+  background: #fffaf3;
+}
+
+.pagina-admin .tabela-estoque tbody tr:hover,
+.pagina-admin .tabela-ofertas tbody tr:hover,
+.pagina-admin .tabela-servicos tbody tr:hover {
+  background: #fff1e0;
+}
+
+.pagina-admin .tabela-estoque tbody tr:last-child td,
+.pagina-admin .tabela-ofertas tbody tr:last-child td,
+.pagina-admin .tabela-servicos tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* --- Botões Editar/Apagar do Estoque no mesmo estilo-pílula --- */
+.pagina-admin .botao-editar-estoque,
+.pagina-admin .botao-apagar-estoque {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+}
+
+.pagina-admin .botao-editar-estoque {
+  background: linear-gradient(135deg, #34b06a, #2a9055);
+  margin-right: 6px;
+}
+
+.pagina-admin .botao-apagar-estoque {
+  background: linear-gradient(135deg, #ef5350, #d63b38);
+}
+
+.pagina-admin .botao-editar-estoque::before {
+  content: "✏️";
+  font-size: 12px;
+}
+
+.pagina-admin .botao-apagar-estoque::before {
+  content: "🗑️";
+  font-size: 12px;
+}
+
+.pagina-admin .botao-editar-estoque:hover {
+  background: linear-gradient(135deg, #2a9055, #237a48);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+.pagina-admin .botao-apagar-estoque:hover {
+  background: linear-gradient(135deg, #d63b38, #b93230);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+/* Garante o degradê nos botões da tabela de Ofertas/Serviços */
+.pagina-admin .tabela-ofertas .coluna-acoes .botao-editar {
+  background: linear-gradient(135deg, #34b06a, #2a9055);
+}
+
+.pagina-admin .tabela-ofertas .coluna-acoes .botao-apagar {
+  background: linear-gradient(135deg, #ef5350, #d63b38);
+}
+
+/* --- Mensagens "Nenhum... ainda" no estilo da Agenda --- */
+.pagina-admin .secao-estoque .agenda-vazia,
+.pagina-admin .secao-ofertas .agenda-vazia,
+.pagina-admin .secao-servicos .agenda-vazia,
+.pagina-admin #estoqueVazio,
+.pagina-admin #ofertasVazia,
+.pagina-admin #servicosVazio {
+  border: 2px dashed #f0c896;
+  border-radius: 14px;
+  background: #fffdf9;
+  padding: 30px;
+  color: #a06a2c;
+  font-size: 15px;
+  text-align: center;
+}
+
+/* --- Celular: seções mais compactas --- */
+@media (max-width: 760px) {
+  .pagina-admin .secao-estoque,
+  .pagina-admin .secao-ofertas,
+  .pagina-admin .secao-servicos {
+    padding: 16px;
+    border-radius: 14px;
+  }
+
+  .pagina-admin .secao-estoque h2,
+  .pagina-admin .secao-ofertas h2,
+  .pagina-admin .secao-servicos h2 {
+    font-size: 22px;
+  }
+}
+
+/* --- Celular: mantém a visão de cartões funcionando --- */
+@media (max-width: 768px) {
+  .pagina-admin .secao-agenda .tabela-container,
+  .pagina-admin .secao-estoque .tabela-container,
+  .pagina-admin .secao-ofertas .tabela-container,
+  .pagina-admin .secao-servicos .tabela-container {
+    overflow: visible;
+    max-height: none;
+  }
+
+  .pagina-admin .tabela-estoque tbody td,
+  .pagina-admin .tabela-ofertas tbody td,
+  .pagina-admin .tabela-servicos tbody td {
+    padding: 7px 0;
+    font-size: 14px;
+    text-align: right;
   }
 }

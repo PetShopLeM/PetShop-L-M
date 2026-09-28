@@ -1,6 +1,9 @@
 require("dotenv").config({ path: ".env.local" });
 const crypto = require("crypto");
 
+// ==========================================
+// CONFIGURAÇÃO
+// ==========================================
 const SPREADSHEET_ID =
   process.env.GOOGLE_SPREADSHEET_ID_AGENDAMENTOS ||
   process.env.GOOGLE_SPREADSHEET_ID_ESTOQUE ||
@@ -8,10 +11,36 @@ const SPREADSHEET_ID =
 
 const SHEET_NAME = process.env.GOOGLE_SHEET_NAME_AGENDAMENTOS || "Agendamentos";
 
+// Ordem das colunas na planilha (aba Agendamentos):
+// A Data | B Dono | C Endereço | D Cell | E Serviço
+// F Horário | G Valor | H Transporte | I Aniversário | J Imagem
+
 function base64url(texto) {
   return Buffer.from(texto, "utf8").toString("base64url");
 }
 
+function normalizar(texto) {
+  return String(texto || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function abaFormatada(titulo) {
+  return `'${String(titulo).replace(/'/g, "''")}'`;
+}
+
+function codificarRange(range) {
+  return encodeURIComponent(range)
+    .replace(/%27/g, "'")
+    .replace(/%21/g, "!")
+    .replace(/%20/g, " ");
+}
+
+// ==========================================
+// AUTENTICAÇÃO NO GOOGLE
+// ==========================================
 async function getAccessToken() {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   let privateKey = process.env.GOOGLE_PRIVATE_KEY || "";
@@ -53,6 +82,9 @@ async function getAccessToken() {
   return dados.access_token;
 }
 
+// ==========================================
+// HELPERS DA API DO GOOGLE SHEETS
+// ==========================================
 async function chamarSheets(token, url, opcoes = {}) {
   const resposta = await fetch(url, {
     ...opcoes,
@@ -67,96 +99,107 @@ async function chamarSheets(token, url, opcoes = {}) {
   let dados = null;
   try {
     dados = texto ? JSON.parse(texto) : null;
-  } catch {
+  } catch (e) {
     dados = null;
   }
 
   if (!resposta.ok) {
-    if (dados && dados.error && dados.error.message) {
-      throw new Error(dados.error.message);
-    }
-    throw new Error(`Google respondeu ${resposta.status}: ${texto.slice(0, 150)}`);
+    const mensagem =
+      (dados && (dados.error?.message || dados.error_description || dados.error)) ||
+      texto ||
+      `Google respondeu ${resposta.status}`;
+    throw new Error(`Google respondeu ${resposta.status}: ${String(mensagem).slice(0, 200)}`);
   }
+
   return dados || {};
 }
 
-function abaFormatada() {
-  return `'${SHEET_NAME.replace(/'/g, "''")}'`;
-}
+async function localizarAba(token, base) {
+  const meta = await chamarSheets(token, base);
+  const alvo = normalizar(SHEET_NAME);
 
-function codificarRange(range) {
-  return encodeURIComponent(range)
-    .replace(/%27/g, "'")
-    .replace(/%21/g, "!")
-    .replace(/%20/g, " ");
-}
+  const aba = (meta.sheets || []).find(
+    (s) => normalizar(s.properties?.title) === alvo
+  );
 
-module.exports = async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-  if (req.method === "OPTIONS") {
-    res.status(204).end();
-    return;
+  if (!aba) {
+    const disponiveis = (meta.sheets || [])
+      .map((s) => s.properties?.title)
+      .filter(Boolean)
+      .join(", ");
+    throw new Error(
+      `Aba "${SHEET_NAME}" nao encontrada. Abas disponiveis: ${disponiveis || "nenhuma"}.`
+    );
   }
 
+  return aba.properties.title;
+}
+
+// Monta a linha com as 10 colunas (A até J), sempre nessa ordem
+function montarLinha(corpo) {
+  const c = corpo || {};
+  return [
+    String(c.data || ""),
+    String(c.dono || ""),
+    String(c.endereco || ""),
+    String(c.cell || ""),
+    String(c.servico || ""),
+    String(c.horario || ""),
+    String(c.valor || ""),
+    String(c.transporte || ""),
+    String(c.aniversario || ""),
+    String(c.imagem || ""),
+  ];
+}
+
+// ==========================================
+// HANDLER
+// ==========================================
+module.exports = async (req, res) => {
   try {
     if (!SPREADSHEET_ID) {
-      throw new Error("Variavel GOOGLE_SPREADSHEET_ID_AGENDAMENTOS nao configurada.");
+      throw new Error("GOOGLE_SPREADSHEET_ID_AGENDAMENTOS nao configurado.");
     }
 
     const token = await getAccessToken();
     const base = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}`;
-    const aba = abaFormatada();
+    const aba = await localizarAba(token, base);
 
-    // ================= GET (LER - colunas A:H) =================
+    // ================= GET (listar) =================
     if (req.method === "GET") {
-      const url = `${base}/values/${codificarRange(`${aba}!A:I`)}?majorDimension=ROWS`;
+      const url = `${base}/values/${codificarRange(`${abaFormatada(aba)}!A:J`)}?majorDimension=ROWS`;
       const dados = await chamarSheets(token, url);
-      const linhas = dados.values || [];
+      const valores = dados.values || [];
 
-      const agendamentos = [];
-      for (let i = 1; i < linhas.length; i++) {
-        const vazia = linhas[i].every((c) => !String(c || "").trim());
-        if (vazia) continue;
-
-        const [data, dono, endereco, cell, servico, horario, valor, transporte, aniversario] = linhas[i];
-        agendamentos.push({
-          linha: i + 1,
-          data: data || "",
-          dono: dono || "",
-          endereco: endereco || "",
-          cell: cell || "",
-          servico: servico || "",
-          horario: horario || "",
-          valor: valor || "",
-          transporte: transporte || "",
-          aniversario: aniversario || "",
-        });
-      }
+      const agendamentos = valores
+        .slice(1) // pula o cabeçalho
+        .map((colunas, indice) => ({
+          linha: indice + 2,
+          data: String(colunas[0] || ""),
+          dono: String(colunas[1] || ""),
+          endereco: String(colunas[2] || ""),
+          cell: String(colunas[3] || ""),
+          servico: String(colunas[4] || ""),
+          horario: String(colunas[5] || ""),
+          valor: String(colunas[6] || ""),
+          transporte: String(colunas[7] || ""),
+          aniversario: String(colunas[8] || ""),
+          imagem: String(colunas[9] || ""),
+        }))
+        .filter((a) =>
+          [a.data, a.dono, a.servico, a.horario].some((v) => v.trim() !== "")
+        );
 
       res.status(200).json(agendamentos);
       return;
     }
 
-    // ================= POST (CRIAR - colunas A:H) =================
+    // ================= POST (criar) =================
     if (req.method === "POST") {
-      const b = req.body || {};
-      const valores = [[
-        String(b.data || ""),
-        String(b.dono || ""),
-        String(b.endereco || ""),
-        String(b.cell || ""),
-        String(b.servico || ""),
-        String(b.horario || ""),
-        String(b.valor || ""),
-        String(b.transporte || ""),
-        String(b.aniversario || ""),
-      ]];
+      const valores = [montarLinha(req.body)];
 
       const url =
-        `${base}/values/${codificarRange(`${aba}!A:H`)}:append` +
+        `${base}/values/${codificarRange(`${abaFormatada(aba)}!A:J`)}:append` +
         `?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`;
 
       await chamarSheets(token, url, {
@@ -168,26 +211,15 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // ================= PATCH (EDITAR LINHA - colunas A:H) =================
+    // ================= PATCH (editar) =================
     if (req.method === "PATCH") {
-      const b = req.body || {};
-      const linha = Number(b.linha || req.query.linha);
+      const linha = Number(req.query?.linha || req.body?.linha || 0);
       if (!linha || linha < 2) throw new Error("Linha invalida para edicao.");
 
-      const valores = [[
-        String(b.data || ""),
-        String(b.dono || ""),
-        String(b.endereco || ""),
-        String(b.cell || ""),
-        String(b.servico || ""),
-        String(b.horario || ""),
-        String(b.valor || ""),
-        String(b.transporte || ""),
-        String(b.aniversario || ""),
-      ]];
+      const valores = [montarLinha(req.body)];
 
       const url = `${base}/values/${codificarRange(
-        `${aba}!A${linha}:H${linha}`
+        `${abaFormatada(aba)}!A${linha}:J${linha}`
       )}?valueInputOption=USER_ENTERED`;
 
       await chamarSheets(token, url, {
@@ -199,14 +231,14 @@ module.exports = async (req, res) => {
       return;
     }
 
-    // ================= DELETE (APAGAR LINHA) =================
+    // ================= DELETE (apagar) =================
     if (req.method === "DELETE") {
-      const linha = Number(req.query.linha);
+      const linha = Number(req.query?.linha || req.body?.linha || 0);
       if (!linha || linha < 2) throw new Error("Linha invalida para exclusao.");
 
       const meta = await chamarSheets(token, `${base}?fields=sheets.properties`);
       const abaEncontrada = (meta.sheets || []).find(
-        (s) => s.properties.title === SHEET_NAME
+        (s) => normalizar(s.properties?.title) === normalizar(SHEET_NAME)
       );
       if (!abaEncontrada) throw new Error(`Aba "${SHEET_NAME}" nao encontrada na planilha.`);
 
