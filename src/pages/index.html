@@ -1,0 +1,155 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pet Shop L&M</title>
+  <link rel="stylesheet" href="../style.css" />
+</head>
+
+<body>
+  <header class="cabecalho">
+    <a href="login.html" class="logo-link" aria-label="Acessar painel administrativo">
+      <h1 class="logo">
+        <img src="../assets/logo.png" alt="Logo do Pet Shop">
+        <span>Pet Shop L&M</span>
+      </h1>
+    </a>
+
+    <nav>
+      <a href="index.html">Início</a>
+      <a href="servicos.html">Serviços</a>
+      <a href="contato.html">Contato</a>
+    </nav>
+  </header>
+
+  <main class="conteudo-principal">
+    <!-- Seção Hero com chamada para agendamento -->
+    <section class="hero">
+      <p class="destaque">Bem-vindo!</p>
+      <h2>Cuidado e carinho para o seu melhor amigo</h2>
+      <p>Banho, tosa, veterinário e muito mais em um só lugar.</p>
+      <button id="botaoMensagem" type="button">Agende agora</button>
+    </section>
+
+    <!-- Seção de Categorias -->
+    <section class="secao-vitrine">
+      <h3 class="titulo-secao">Categorias</h3>
+      <div class="grade-categorias">
+        <a href="produtos.html?categoria=cachorro" class="item-categoria">
+          <div class="icone-categoria">🐶</div>
+          <span>Cachorro</span>
+        </a>
+        <a href="produtos.html?categoria=gato" class="item-categoria">
+          <div class="icone-categoria">🐱</div>
+          <span>Gato</span>
+        </a>
+        <a href="produtos.html?categoria=casa" class="item-categoria">
+          <div class="icone-categoria">🏠</div>
+          <span>Casa</span>
+        </a>
+        <a href="produtos.html?categoria=jardim" class="item-categoria">
+          <div class="icone-categoria">🌱</div>
+          <span>Jardim</span>
+        </a>
+        <a href="produtos.html?categoria=piscina" class="item-categoria">
+          <div class="icone-categoria">🏊</div>
+          <span>Piscina</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- Ofertas cadastradas no painel administrativo -->
+    <section id="secaoOfertasAdmin" class="secao-vitrine" style="display: none;">
+      <div class="cabecalho-vitrine">
+        <h3 class="titulo-secao">🔥 Ofertas do Pet Shop L&M</h3>
+      </div>
+
+      <div id="linhaOfertasAdmin" class="linha-produtos"></div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <p>© 2026 - Pet Shop L&M</p>
+  </footer>
+
+  <!-- Modal de Agendamento -->
+  <div id="modalAgendamento" class="modal-overlay">
+    <div class="modal">
+      <button id="fecharModal" class="modal-fechar" type="button" aria-label="Fechar">&times;</button>
+      <h3>Novo Agendamento</h3>
+
+      <form id="formAgendamento">
+        <label for="data">Data:</label>
+        <input type="date" id="data" name="data" required>
+
+        <label for="Dono(a)">Nomes: Dono(a) e Animal:</label>
+        <input type="text" id="Dono(a)" name="Dono(a)" placeholder="Ex: Ale - Buck" required>
+
+        <label for="imagemAnimal">Foto do animal:</label>
+        <input type="file" id="imagemAnimal" name="imagemAnimal" accept="image/*" />
+
+        <img
+          id="previewImagemAnimal"
+          alt="Prévia da foto do animal"
+          style="
+            display: none;
+            width: 140px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin: 8px 0;
+          "
+        />
+
+        <label for="endereco">Endereço:</label>
+        <input type="text" id="endereco" name="endereco" placeholder="Rua, número e bairro" required>
+
+        <label for="aniversario">Aniversário do animal:</label>
+        <input type="date" id="aniversario" name="aniversario" />
+
+        <label for="transporte">Transporte:</label>
+        <select id="transporte" name="transporte" required>
+          <option value="Não - o cliente leva e busca o animal">
+            Não - O cliente leva e busca o animal
+          </option>
+          <option value="Sim - buscar o animal">Sim - (Apenas buscar)</option>
+          <option value="Sim - levar o animal">Sim - (Apenas levar)</option>
+          <option value="Sim - buscar e levar o animal">Sim - Buscar e levar o animal</option>
+        </select>
+
+        <label for="cell">Cell:</label>
+        <input type="tel" id="cell" name="cell" placeholder="(00) 00000-0000" required>
+
+        <label>Serviço(s):</label>
+
+        <div class="botoes-tipos-servico">
+  <button type="button" id="botaoBanho" class="botao-tipo-servico">
+    Banho
+  </button>
+
+  <button type="button" id="botaoTosa" class="botao-tipo-servico">
+    Tosa
+  </button>
+
+  <button type="button" id="botaoOutrosServicos" class="botao-tipo-servico">
+    Outros serviços
+  </button>
+</div>
+
+<div id="listaServicosAgendamento" class="lista-servicos-agendamento"></div>
+
+        <label for="horario">Horário:</label>
+        <input type="time" id="horario" name="horario" required>
+
+        <label for="valor">Valor:</label>
+        <input type="text" id="valor" name="valor" value="R$ 0,00" readonly>
+
+        <button type="submit" class="modal-enviar">Salvar</button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="../main.ts"></script>
+</body>
+</html>
