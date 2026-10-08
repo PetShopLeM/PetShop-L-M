@@ -265,18 +265,50 @@ function escapar(texto: string) {
   return d.innerHTML;
 }
 
-// Monta a miniatura redonda da imagem (clique abre a foto em nova aba)
+// Monta a célula do Dono(a): avatar (se houver) + nome, centralizados.
+// Clique na foto abre a imagem em nova aba; se falhar, a foto some.
 function celulaImagemCliente(c: Cliente): string {
-  if (!c.imagem) return "";
+  const url = (c.imagem || "").trim();
+
+  const avatar =
+    url && /^https?:\/\//i.test(url)
+      ? `<a
+          href="${escapar(url)}"
+          target="_blank"
+          rel="noopener noreferrer"
+          style="
+            display: inline-flex !important;
+            align-items: center !important;
+            flex-shrink: 0 !important;
+            line-height: 0 !important;
+          "
+        >
+          <img
+            src="${escapar(url)}"
+            alt=""
+            style="
+              width: 44px !important;
+              height: 44px !important;
+              object-fit: cover !important;
+              border-radius: 50% !important;
+            "
+            onerror="this.style.display='none'"
+          />
+        </a>`
+      : "";
 
   return `
-    <a href="${escapar(c.imagem)}" target="_blank" rel="noopener" title="Ver imagem">
-      <img
-        src="${escapar(c.imagem)}"
-        alt="Imagem do cliente"
-        style="width:44px !important; height:44px !important; object-fit:cover !important; border-radius:50% !important; cursor:pointer !important; flex-shrink:0 !important;"
-      />
-    </a>
+    <span
+      style="
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 10px !important;
+      "
+    >
+      ${avatar}
+      <span>${escapar(c.dono)}</span>
+    </span>
   `;
 }
 
@@ -307,11 +339,8 @@ function desenhar() {
     .map(
       ({ c }) => `
       <tr>
-        <td>
-          <span style="display:inline-flex !important; align-items:center !important; gap:10px !important;">
-            ${celulaImagemCliente(c)}
-            ${escapar(c.dono)}
-          </span>
+        <td style="text-align: center !important; vertical-align: middle !important;">
+          ${celulaImagemCliente(c)}
         </td>
         <td>${escapar(c.animal)}</td>
         <td>${escapar(c.cell)}</td>
