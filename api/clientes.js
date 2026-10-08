@@ -123,9 +123,9 @@ async function localizarAba(token, base) {
   return aba.properties;
 }
 
-// Le todas as linhas de clientes (A = dono | B = animal | C = cell | D = endereco)
+// Le todas as linhas (A = dono | B = animal | C = cell | D = endereco | E = imagem)
 async function lerClientes(token, base, aba) {
-  const url = `${base}/values/${codificarRange(`${aba}!A:D`)}?majorDimension=ROWS`;
+  const url = `${base}/values/${codificarRange(`${aba}!A:E`)}?majorDimension=ROWS`;
   const dados = await chamarSheets(token, url);
   const linhas = dados.values || [];
 
@@ -133,19 +133,17 @@ async function lerClientes(token, base, aba) {
   for (let i = PRIMEIRA_LINHA - 1; i < linhas.length; i++) {
     const coluna = linhas[i];
     const valor = (indice) => (coluna[indice] === undefined ? "" : String(coluna[indice]));
-
     const cliente = {
       linha: i + 1,
       dono: valor(0),
       animal: valor(1),
       cell: valor(2),
       endereco: valor(3),
+      imagem: valor(4),
     };
-
     const vazia = !cliente.dono && !cliente.animal;
     if (!vazia) clientes.push(cliente);
   }
-
   return clientes;
 }
 
@@ -169,7 +167,6 @@ function extrairLinha(req) {
 
   const numero = Number(bruto);
   const linha = Number.isInteger(numero) && numero >= PRIMEIRA_LINHA ? numero : null;
-
   return { corpo, linha };
 }
 
@@ -216,10 +213,11 @@ module.exports = async (req, res) => {
           String(corpo.animal || ""),
           String(corpo.cell || ""),
           String(corpo.endereco || ""),
+          String(corpo.imagem || ""),
         ],
       ];
 
-      const url = `${base}/values/${codificarRange(`${aba}!A:D`)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
+      const url = `${base}/values/${codificarRange(`${aba}!A:E`)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`;
       await chamarSheets(token, url, {
         method: "POST",
         body: JSON.stringify({ values: valores }),
@@ -232,14 +230,13 @@ module.exports = async (req, res) => {
     // ================= PATCH (editar) =================
     if (req.method === "PATCH") {
       const { corpo, linha } = extrairLinha(req);
-
       if (!linha) {
         res.status(400).json({ erro: "Linha invalida para edicao." });
         return;
       }
 
       // Le a linha atual para preservar colunas nao enviadas
-      const urlAtual = `${base}/values/${codificarRange(`${aba}!A${linha}:D${linha}`)}?majorDimension=ROWS`;
+      const urlAtual = `${base}/values/${codificarRange(`${aba}!A${linha}:E${linha}`)}?majorDimension=ROWS`;
       const dadosAtuais = await chamarSheets(token, urlAtual);
       const linhaAtual = (dadosAtuais.values || [])[0] || [];
       const atual = (indice) => (linhaAtual[indice] === undefined ? "" : String(linhaAtual[indice]));
@@ -250,10 +247,11 @@ module.exports = async (req, res) => {
           corpo.animal !== undefined ? String(corpo.animal) : atual(1),
           corpo.cell !== undefined ? String(corpo.cell) : atual(2),
           corpo.endereco !== undefined ? String(corpo.endereco) : atual(3),
+          corpo.imagem !== undefined ? String(corpo.imagem) : atual(4),
         ],
       ];
 
-      const url = `${base}/values/${codificarRange(`${aba}!A${linha}:D${linha}`)}?valueInputOption=RAW`;
+      const url = `${base}/values/${codificarRange(`${aba}!A${linha}:E${linha}`)}?valueInputOption=RAW`;
       await chamarSheets(token, url, {
         method: "PUT",
         body: JSON.stringify({ values: valores }),
@@ -266,7 +264,6 @@ module.exports = async (req, res) => {
     // ================= DELETE (apagar) =================
     if (req.method === "DELETE") {
       const { linha } = extrairLinha(req);
-
       if (!linha) {
         res.status(400).json({ erro: "Linha invalida para exclusao." });
         return;

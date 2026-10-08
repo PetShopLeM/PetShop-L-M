@@ -4,6 +4,7 @@ type Cliente = {
   animal: string;
   cell: string;
   endereco: string;
+  imagem: string;
 };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -139,7 +140,96 @@ popupCliente.addEventListener("click", (e) => {
   }
 });
 
+// ==========================================
+// CAMPO DE IMAGEM DO POPUP (criado aqui,
+// sem precisar mexer no admin.html)
+// ==========================================
+const rotuloImagemCliente = document.createElement("label");
+rotuloImagemCliente.htmlFor = "clienteImagem";
+rotuloImagemCliente.textContent = "Imagem";
+
+const inputImagemCliente = document.createElement("input");
+inputImagemCliente.type = "file";
+inputImagemCliente.id = "clienteImagem";
+inputImagemCliente.accept = "image/*";
+
+const previewImagemCliente = document.createElement("img");
+previewImagemCliente.id = "previewClienteImagem";
+previewImagemCliente.alt = "";
+previewImagemCliente.style.setProperty("display", "none", "important");
+previewImagemCliente.style.setProperty("width", "96px", "important");
+previewImagemCliente.style.setProperty("height", "96px", "important");
+previewImagemCliente.style.setProperty("object-fit", "cover", "important");
+previewImagemCliente.style.setProperty("border-radius", "8px", "important");
+previewImagemCliente.style.setProperty("margin-top", "8px", "important");
+
+const botaoSalvarCliente = form.querySelector<HTMLButtonElement>(".botao-salvar");
+if (botaoSalvarCliente) {
+  form.insertBefore(rotuloImagemCliente, botaoSalvarCliente);
+  form.insertBefore(inputImagemCliente, botaoSalvarCliente);
+  form.insertBefore(previewImagemCliente, botaoSalvarCliente);
+} else {
+  form.append(rotuloImagemCliente, inputImagemCliente, previewImagemCliente);
+}
+
+// Prévia assim que o usuário escolhe o arquivo
+inputImagemCliente.addEventListener("change", () => {
+  const arquivo = inputImagemCliente.files?.[0] || null;
+
+  if (!arquivo) {
+    previewImagemCliente.src = "";
+    previewImagemCliente.style.setProperty("display", "none", "important");
+    return;
+  }
+
+  const leitor = new FileReader();
+  leitor.onload = () => {
+    previewImagemCliente.src = String(leitor.result);
+    previewImagemCliente.style.setProperty("display", "block", "important");
+  };
+  leitor.readAsDataURL(arquivo);
+});
+
+function limparPreviewImagemCliente() {
+  inputImagemCliente.value = "";
+  previewImagemCliente.src = "";
+  previewImagemCliente.style.setProperty("display", "none", "important");
+}
+
 let clientes: Cliente[] = [];
+
+// Estado de edição: null = novo cliente | número = linha da planilha em edição
+let linhaEmEdicao: number | null = null;
+
+function modoNovoCliente() {
+  linhaEmEdicao = null;
+  tituloPopupCliente.textContent = "Novo Cliente";
+  if (botaoSalvarCliente) botaoSalvarCliente.textContent = "Adicionar cliente";
+  form.reset();
+  limparPreviewImagemCliente();
+}
+
+function modoEditarCliente(c: Cliente) {
+  linhaEmEdicao = c.linha;
+  tituloPopupCliente.textContent = "Editar Cliente";
+  if (botaoSalvarCliente) botaoSalvarCliente.textContent = "Salvar alterações";
+
+  $<HTMLInputElement>("clienteDono").value = c.dono;
+  $<HTMLInputElement>("clienteAnimal").value = c.animal;
+  $<HTMLInputElement>("clienteCell").value = c.cell;
+  $<HTMLInputElement>("clienteEndereco").value = c.endereco;
+
+  // Sem arquivo novo selecionado: se não escolher outra foto, mantém a atual
+  inputImagemCliente.value = "";
+
+  if (c.imagem) {
+    previewImagemCliente.src = c.imagem;
+    previewImagemCliente.style.setProperty("display", "block", "important");
+  } else {
+    previewImagemCliente.src = "";
+    previewImagemCliente.style.setProperty("display", "none", "important");
+  }
+}
 
 // ==========================================
 // PLANILHA (Google Sheets via /api/clientes)
@@ -175,6 +265,21 @@ function escapar(texto: string) {
   return d.innerHTML;
 }
 
+// Monta a miniatura redonda da imagem (clique abre a foto em nova aba)
+function celulaImagemCliente(c: Cliente): string {
+  if (!c.imagem) return "";
+
+  return `
+    <a href="${escapar(c.imagem)}" target="_blank" rel="noopener" title="Ver imagem">
+      <img
+        src="${escapar(c.imagem)}"
+        alt="Imagem do cliente"
+        style="width:44px !important; height:44px !important; object-fit:cover !important; border-radius:50% !important; cursor:pointer !important; flex-shrink:0 !important;"
+      />
+    </a>
+  `;
+}
+
 function desenhar() {
   // A linha vem da planilha, então o filtro não afeta a exclusão.
   const visiveis = clientes
@@ -202,11 +307,17 @@ function desenhar() {
     .map(
       ({ c }) => `
       <tr>
-        <td>${escapar(c.dono)}</td>
+        <td>
+          <span style="display:inline-flex !important; align-items:center !important; gap:10px !important;">
+            ${celulaImagemCliente(c)}
+            ${escapar(c.dono)}
+          </span>
+        </td>
         <td>${escapar(c.animal)}</td>
         <td>${escapar(c.cell)}</td>
         <td>${escapar(c.endereco)}</td>
         <td class="coluna-acoes">
+          <button type="button" data-editar="${c.linha}">Editar</button>
           <button type="button" data-remover="${c.linha}">Excluir</button>
         </td>
       </tr>`
@@ -235,6 +346,7 @@ botaoMaisClientes.style.setProperty("display", "none", "important");
 botaoMaisOriginal.insertAdjacentElement("afterend", botaoMaisClientes);
 
 botaoMaisClientes.addEventListener("click", () => {
+  modoNovoCliente();
   if (!popupCliente.open) popupCliente.showModal();
   $<HTMLInputElement>("clienteDono").focus({ preventScroll: true });
 });
@@ -282,55 +394,116 @@ document
   .querySelectorAll(".botao-aba")
   .forEach((b) => b !== botao && b.addEventListener("click", fecharClientes));
 
+// Envia a imagem para a API (api/upload-imagem.js), que salva no
+// Supabase Storage e devolve o link público para gravar na planilha
+async function enviarImagemCliente(conteudo: Blob): Promise<string> {
+  const base64 = await new Promise<string>((resolve, reject) => {
+    const leitor = new FileReader();
+    leitor.onload = () => resolve(String(leitor.result));
+    leitor.onerror = () => reject(new Error("Falha ao ler a imagem."));
+    leitor.readAsDataURL(conteudo);
+  });
+
+  const resposta = await fetch("/api/upload-imagem", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ imagem: base64 }),
+  });
+
+  const dados = await resposta.json().catch(() => ({}));
+  if (!resposta.ok) {
+    throw new Error(dados?.erro || "Falha ao enviar a imagem do cliente.");
+  }
+
+  return String(dados.url || "");
+}
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const novo = {
+  const arquivoImagem = inputImagemCliente.files?.[0] || null;
+
+  const dadosCliente = {
     dono: $<HTMLInputElement>("clienteDono").value.trim(),
     animal: $<HTMLInputElement>("clienteAnimal").value.trim(),
     cell: $<HTMLInputElement>("clienteCell").value.trim(),
     endereco: $<HTMLInputElement>("clienteEndereco").value.trim(),
   };
 
-  if (!novo.dono) return;
+  if (!dadosCliente.dono) return;
 
-  const botaoSalvar = form.querySelector<HTMLButtonElement>(".botao-salvar");
-
-  if (botaoSalvar) {
-    botaoSalvar.disabled = true;
-    botaoSalvar.textContent = "Salvando...";
+  if (botaoSalvarCliente) {
+    botaoSalvarCliente.disabled = true;
+    botaoSalvarCliente.textContent = "Salvando...";
   }
 
   try {
-    const resposta = await fetch("/api/clientes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(novo),
-    });
+    // Novo cliente: grava o link (ou vazio). Em edição: só envia imagem
+    // se uma foto nova foi escolhida — assim a atual é preservada.
+    let imagem = "";
+    if (arquivoImagem) {
+      imagem = await enviarImagemCliente(arquivoImagem);
+    }
+
+    const corpo: Record<string, string> = { ...dadosCliente };
+
+    if (linhaEmEdicao) {
+      if (imagem) corpo.imagem = imagem;
+    } else {
+      corpo.imagem = imagem;
+    }
+
+    const resposta = await fetch(
+      linhaEmEdicao ? `/api/clientes?linha=${linhaEmEdicao}` : "/api/clientes",
+      {
+        method: linhaEmEdicao ? "PATCH" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(corpo),
+      }
+    );
 
     const dados = await resposta.json().catch(() => ({}));
     if (!resposta.ok) {
       throw new Error(dados?.erro || "Erro ao salvar cliente na planilha.");
     }
 
-    form.reset();
+    modoNovoCliente();
     popupCliente.close();
     await carregarClientes();
   } catch (erro: any) {
     alert(erro?.message || "Erro ao salvar cliente na planilha.");
   } finally {
-    if (botaoSalvar) {
-      botaoSalvar.disabled = false;
-      botaoSalvar.textContent = "Adicionar cliente";
+    if (botaoSalvarCliente) {
+      botaoSalvarCliente.disabled = false;
+      botaoSalvarCliente.textContent = linhaEmEdicao
+        ? "Salvar alterações"
+        : "Adicionar cliente";
     }
   }
 });
 
 lista.addEventListener("click", async (e) => {
-  const alvo = (e.target as HTMLElement).closest("[data-remover]");
-  if (!alvo) return;
+  const alvo = e.target as HTMLElement;
 
-  const linha = Number(alvo.getAttribute("data-remover"));
+  // ===== Editar =====
+  const botaoEditar = alvo.closest("[data-editar]");
+  if (botaoEditar) {
+    const linha = Number(botaoEditar.getAttribute("data-editar"));
+    const cliente = clientes.find((c) => c.linha === linha);
+
+    if (cliente) {
+      modoEditarCliente(cliente);
+      if (!popupCliente.open) popupCliente.showModal();
+      $<HTMLInputElement>("clienteDono").focus({ preventScroll: true });
+    }
+    return;
+  }
+
+  // ===== Excluir =====
+  const botaoExcluir = alvo.closest("[data-remover]");
+  if (!botaoExcluir) return;
+
+  const linha = Number(botaoExcluir.getAttribute("data-remover"));
   if (!linha) return;
 
   try {

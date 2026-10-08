@@ -6,9 +6,9 @@ export default defineConfig({
   server: {
     proxy: {
       "/api": {
-        target: "https://petshop-vert-ten.vercel.app",
-        changeOrigin: true,
-      },
+  target: "https://petshop-lem.vercel.app",
+  changeOrigin: true,
+},
     },
   },
   build: {
