@@ -1,4 +1,8 @@
-require("dotenv").config({ path: ".env.local" });
+// dotenv é opcional: o vercel dev já carrega o .env.local sozinho
+try {
+  require("dotenv").config({ path: ".env.local" });
+} catch (e) {}
+
 const crypto = require("crypto");
 
 // ==========================================
@@ -10,6 +14,9 @@ const SPREADSHEET_ID =
   "";
 
 const SHEET_NAME = process.env.GOOGLE_SHEET_NAME_AGENDAMENTOS || "Agendamentos";
+
+// Aba dos clientes (dono, animal e foto)
+const SHEET_NAME_CLIENTES = process.env.GOOGLE_SHEET_NAME_CLIENTES || "Clientes";
 
 // Ordem das colunas na planilha (aba Agendamentos):
 // A Data | B Dono | C Endereço | D Cell | E Serviço
@@ -135,7 +142,6 @@ async function localizarAba(token, base) {
   return aba.properties.title;
 }
 
-// Monta a linha com as 10 colunas (A até J), sempre nessa ordem
 function montarLinha(corpo) {
   const c = corpo || {};
   return [
@@ -150,6 +156,249 @@ function montarLinha(corpo) {
     String(c.aniversario || ""),
     String(c.imagem || ""),
   ];
+}
+
+// ==========================================
+// FOTO AUTOMÁTICA DO ANIMAL (aba Clientes)
+// ==========================================
+function separarDonoAnimal(texto) {
+  const partes = String(texto || "").split(/[-–—]/);
+  const dono = normalizar(partes[0] || "");
+  const animal = normalizar(partes.slice(1).join(" ") || "");
+  const completo = normalizar(texto).replace(/^[\s\-–—]+|[\s\-–—]+$/g, "");
+  return { dono, animal, completo };
+}
+
+// Distância de edição entre dois nomes (quantas letras mudam)
+function distancia(a, b) {
+  const dp = [];
+  for (let i = 0; i <= a.length; i++) {
+    dp[i] = [i];
+    for (let j = 1; j <= b.length; j++) {
+      dp[i][j] = i === 0
+        ? j
+        : Math.min(
+            dp[i - 1][j] + 1,
+            dp[i][j - 1] + 1,
+            dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+          );
+    }
+  }
+  return dp[a.length][b.length];
+}
+
+// Aceita nomes iguais, contidos um no outro, ou com 1-2 letras de diferença
+function nomesParecidos(a, b) {
+  if (!a || !b) return false;
+  if (a === b || a.includes(b) || b.includes(a)) return true;
+  const tolerancia = Math.min(a.length, b.length) <= 6 ? 1 : 2;
+  return distancia(a, b) <= tolerancia;
+}
+
+function encontrarCliente(clientes, textoDono) {
+  const { dono, animal, completo } = separarDonoAnimal(textoDono);
+
+  // 1) Dono + animal ("Dono - Animal")
+  let achado = clientes.find(
+    (c) => nomesParecidos(c._dono, dono) && nomesParecidos(c._animal, animal)
+  );
+  if (achado) return achado;
+
+  // 2) Ordem invertida ("Sol - Vih" → cadastro Viih / Sol)
+  achado = clientes.find(
+    (c) => nomesParecidos(c._dono, animal) && nomesParecidos(c._animal, dono)
+  );
+  if (achado) return achado;
+
+  // 3) O texto inteiro é o nome do animal
+  if (completo) {
+    achado = clientes.find((c) => nomesParecidos(c._animal, completo));
+    if (achado) return achado;
+  }
+
+  // 4) Dono parecido + animal citado no texto ("Deusa - Billy e Zoe")
+  if (animal) {
+    achado = clientes.find(
+      (c) => nomesParecidos(c._dono, dono) && c._animal && animal.includes(c._animal)
+    );
+    if (achado) return achado;
+  }
+
+  // 5) Apenas o dono parecido
+  achado = clientes.find((c) => nomesParecidos(c._dono, dono));
+  if (achado) return achado;
+
+  // 6) Apenas o animal aparecendo no texto
+  achado = clientes.find(
+    (c) => c._animal && (completo.includes(c._animal) || nomesParecidos(c._animal, animal))
+  );
+  if (achado) return achado;
+
+  console.log(`[fotos] Sem correspondencia para dono="${dono}" animal="${animal}"`);
+  return null;
+}
+
+// Monta a lista de planilhas candidatas a ter a aba de Clientes
+function idsPlanilhasParaClientes() {
+  const lista = [];
+  const adicionar = (id, origem) => {
+    if (id && !lista.some((item) => item.id === id)) {
+      lista.push({ id: String(id).trim(), origem });
+    }
+  };
+
+  adicionar(process.env.GOOGLE_SPREADSHEET_ID_CLIENTES, "GOOGLE_SPREADSHEET_ID_CLIENTES");
+  adicionar(process.env.GOOGLE_SPREADSHEETS_ID_CLIENTES, "GOOGLE_SPREADSHEETS_ID_CLIENTES");
+
+  // Qualquer outra variável de planilha do projeto (ex.: a usada pela api/clientes.js)
+  for (const [chave, valor] of Object.entries(process.env)) {
+    if (/SPREADSHEET.*ID/i.test(chave) && valor) adicionar(valor, chave);
+  }
+
+  // Por último, a própria planilha de agendamentos (a aba Clientes pode morar nela)
+  adicionar(SPREADSHEET_ID, "planilha de agendamentos (fallback)");
+
+  return lista.slice(0, 6);
+}
+
+// Detecta onde ficam as colunas de dono, animal e imagem na aba Clientes
+function detectarLayout(linhas) {
+  let indiceCabecalho = -1;
+  for (let i = 0; i < Math.min(linhas.length, 6); i++) {
+    const textos = (linhas[i] || []).map(normalizar);
+    const temDono = textos.some((t) => t.includes("dono") || t === "nomes" || t === "nome");
+    const temAnimal = textos.some((t) => t.includes("animal") || t.includes("pet"));
+    if (temDono && temAnimal) {
+      indiceCabecalho = i;
+      break;
+    }
+  }
+
+  if (indiceCabecalho === -1) {
+    return {
+      primeiraLinhaDados: 2,
+      colunaDono: 0,
+      colunaAnimal: 1,
+      colunaImagem: 4,
+      descricao: { padrao: "fixo: dono=A, animal=B, imagem=E, dados a partir da linha 3" },
+    };
+  }
+
+  const cabecalho = (linhas[indiceCabecalho] || []).map(normalizar);
+  const procurar = (padroes) => {
+    for (const padrao of padroes) {
+      const idx = cabecalho.findIndex((t) => t && t.includes(padrao));
+      if (idx >= 0) return idx;
+    }
+    return -1;
+  };
+
+  const colunaDono = Math.max(0, procurar(["dono", "nome"]));
+  const colunaAnimal = Math.max(0, procurar(["animal", "pet"]));
+  let colunaImagem = procurar(["imagem", "foto", "avatar"]);
+  if (colunaImagem === -1) colunaImagem = 4;
+
+  const letra = (i) => String.fromCharCode(65 + i);
+  return {
+    primeiraLinhaDados: indiceCabecalho + 1,
+    colunaDono,
+    colunaAnimal,
+    colunaImagem,
+    descricao: {
+      cabecalhoNaLinha: indiceCabecalho + 1,
+      dono: `${letra(colunaDono)} (${cabecalho[colunaDono] || "?"})`,
+      animal: `${letra(colunaAnimal)} (${cabecalho[colunaAnimal] || "?"})`,
+      imagem: `${letra(colunaImagem)} (${cabecalho[colunaImagem] || "?"})`,
+    },
+  };
+}
+
+// Procura a aba Clientes nas planilhas do projeto e carrega os cadastros
+async function carregarClientes(token) {
+  const diagnostico = { tentativas: [], abaUsada: null, erroGeral: null };
+  const candidatos = idsPlanilhasParaClientes();
+
+  if (candidatos.length === 0) {
+    diagnostico.erroGeral = "Nenhuma planilha configurada nas variaveis de ambiente.";
+    return { clientes: [], diagnostico };
+  }
+
+  for (const candidato of candidatos) {
+    const tentativa = {
+      origem: candidato.origem,
+      id: candidato.id,
+      abas: [],
+      erro: null,
+    };
+
+    try {
+      const base = `https://sheets.googleapis.com/v4/spreadsheets/${candidato.id}`;
+      const meta = await chamarSheets(token, base);
+      tentativa.abas = (meta.sheets || [])
+        .map((s) => s.properties?.title)
+        .filter(Boolean);
+
+      const abaClientes = tentativa.abas.find(
+        (t) => normalizar(t) === normalizar(SHEET_NAME_CLIENTES)
+      );
+      if (!abaClientes) {
+        tentativa.erro = `Aba "${SHEET_NAME_CLIENTES}" nao encontrada`;
+        diagnostico.tentativas.push(tentativa);
+        continue;
+      }
+
+      const url = `${base}/values/${codificarRange(
+        `${abaFormatada(abaClientes)}!A1:J`
+      )}?majorDimension=ROWS`;
+      const dados = await chamarSheets(token, url);
+      const linhas = (dados.values || []).map((linha) =>
+        (linha || []).map((c) => String(c === undefined || c === null ? "" : c).trim())
+      );
+
+      const layout = detectarLayout(linhas);
+      const clientes = [];
+      for (let i = layout.primeiraLinhaDados; i < linhas.length; i++) {
+        const celula = (idx) =>
+          linhas[i][idx] === undefined ? "" : String(linhas[i][idx]).trim();
+        const dono = celula(layout.colunaDono);
+        const animal = celula(layout.colunaAnimal);
+        const imagem = celula(layout.colunaImagem);
+        if (!dono && !animal) continue;
+        clientes.push({
+          dono,
+          animal,
+          imagem,
+          _dono: normalizar(dono),
+          _animal: normalizar(animal),
+        });
+      }
+
+      tentativa.abaEncontrada = abaClientes;
+      diagnostico.tentativas.push(tentativa);
+      diagnostico.abaUsada = {
+        origem: candidato.origem,
+        planilha: candidato.id,
+        aba: abaClientes,
+        layout: layout.descricao,
+        clientesCarregados: clientes.length,
+        nomes: clientes.map(
+          (c) =>
+            `${c._dono || "?"} / ${c._animal || "?"}${c.imagem ? " (com foto)" : " (sem foto)"}`
+        ),
+        primeirasLinhasBrutas: linhas.slice(0, 6),
+      };
+
+      console.log(`[fotos] Clientes carregados: ${clientes.length} (aba ${abaClientes})`);
+      return { clientes, diagnostico };
+    } catch (e) {
+      tentativa.erro = e.message;
+      diagnostico.tentativas.push(tentativa);
+      console.log(`[fotos] Falha na planilha ${candidato.origem}: ${e.message}`);
+    }
+  }
+
+  diagnostico.erroGeral = "Nenhuma planilha com aba de Clientes funcionou.";
+  return { clientes: [], diagnostico };
 }
 
 // ==========================================
@@ -189,6 +438,48 @@ module.exports = async (req, res) => {
         .filter((a) =>
           [a.data, a.dono, a.servico, a.horario].some((v) => v.trim() !== "")
         );
+
+      // Completa a foto do animal com base na aba Clientes
+      const { clientes, diagnostico } = await carregarClientes(token);
+      const cruzamento = [];
+
+      for (const agendamento of agendamentos) {
+        if (String(agendamento.imagem || "").trim() !== "") continue;
+
+        const cliente = encontrarCliente(clientes, agendamento.dono);
+        cruzamento.push({
+          dono: agendamento.dono,
+          resultado: cliente
+            ? cliente.imagem
+              ? `match: ${cliente.dono} / ${cliente.animal} → foto aplicada`
+              : `match: ${cliente.dono} / ${cliente.animal}, mas o cadastro está SEM foto`
+            : "nenhum cadastro deu match",
+        });
+
+        if (cliente && cliente.imagem) {
+          agendamento.imagem = cliente.imagem;
+          console.log(
+            `[fotos] Foto aplicada a "${agendamento.dono}" via cliente "${cliente.dono} / ${cliente.animal}"`
+          );
+        }
+      }
+
+      // Modo diagnóstico: /api/agendamentos?debug=1
+      if (req.query && req.query.debug === "1") {
+        res.status(200).json({
+          debug: {
+            planilhaAgendamentos: {
+              id: SPREADSHEET_ID,
+              aba: aba,
+              temVariavelClientes: !!process.env.GOOGLE_SPREADSHEET_ID_CLIENTES,
+            },
+            clientes: diagnostico,
+            cruzamento,
+          },
+          agendamentos,
+        });
+        return;
+      }
 
       res.status(200).json(agendamentos);
       return;
