@@ -55,7 +55,7 @@ interface Agendamento {
 // ==========================================
 // ⚠️ ATENÇÃO: confira se este é o MESMO e-mail que você digita
 // na tela de login para entrar no painel. Se for outro, troque aqui!
-const EMAILS_AUTORIZADOS: string[] = ["a@a.com"];
+const EMAILS_AUTORIZADOS: string[] = ["fifacil37@gmail.com"];
 
 // ==========================================
 // ELEMENTOS DA PÁGINA
